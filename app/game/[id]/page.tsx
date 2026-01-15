@@ -130,7 +130,7 @@ export default function GamePage() {
         <div className="flex flex-col gap-6">
           {/* Header */}
           <div className="flex items-center gap-3 pt-4">
-            <Button variant="ghost" size="icon" onClick={handleCloseGame} className="rounded-full">
+            <Button variant="ghost" size="icon" tabIndex={0} onClick={handleCloseGame} className="rounded-full">
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div className="flex-1">

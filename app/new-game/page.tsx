@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { GameType } from '@/types/game';
 import { createGame } from '@/lib/gameLogic';
@@ -19,6 +19,7 @@ export default function NewGame() {
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
   const [customPlayerName, setCustomPlayerName] = useState('');
   const [customTargetScore, setCustomTargetScore] = useState<string>('');
+  const firstPlayerButtonRef = useRef<HTMLButtonElement>(null);
 
   const getDefaultTargetScore = (type: GameType): number => {
     return type === 'skyjo' ? 100 : 200;
@@ -28,6 +29,10 @@ export default function NewGame() {
   useEffect(() => {
     if (gameType) {
       setCustomTargetScore(getDefaultTargetScore(gameType).toString());
+      // Déplacer le focus sur le premier bouton de joueur
+      setTimeout(() => {
+        firstPlayerButtonRef.current?.focus();
+      }, 100);
     }
   }, [gameType]);
 
@@ -89,6 +94,7 @@ export default function NewGame() {
             <Button
               variant="ghost"
               size="icon"
+              tabIndex={0}
               onClick={() => router.push('/')}
               className="rounded-full"
             >
@@ -108,6 +114,7 @@ export default function NewGame() {
             <CardContent className="space-y-3">
               <button
                 type="button"
+                tabIndex={0}
                 onClick={() => setGameType('skyjo')}
                 className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
                   gameType === 'skyjo'
@@ -130,6 +137,7 @@ export default function NewGame() {
 
               <button
                 type="button"
+                tabIndex={0}
                 onClick={() => setGameType('flip7')}
                 className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
                   gameType === 'flip7'
@@ -169,15 +177,17 @@ export default function NewGame() {
               <CardContent className="space-y-4">
                 {/* Boutons joueurs prédéfinis */}
                 <div className="grid grid-cols-2 gap-2">
-                  {PRESET_PLAYERS.map((name) => {
+                  {PRESET_PLAYERS.map((name, index) => {
                     const isSelected = selectedPlayers.includes(name);
                     return (
                       <Button
                         key={name}
+                        ref={index === 0 ? firstPlayerButtonRef : null}
                         type="button"
+                        tabIndex={0}
                         variant={isSelected ? 'default' : 'outline'}
                         onClick={() => togglePresetPlayer(name)}
-                        className="h-12 relative"
+                        className="h-12 relative focus-visible:ring-4 focus-visible:ring-primary/30"
                         disabled={!isSelected && selectedPlayers.length >= 6}
                       >
                         {isSelected && (
@@ -209,6 +219,7 @@ export default function NewGame() {
                     />
                     <Button
                       type="button"
+                      tabIndex={0}
                       onClick={addCustomPlayer}
                       disabled={
                         !customPlayerName.trim() || selectedPlayers.length >= 6
@@ -235,6 +246,7 @@ export default function NewGame() {
                           {name}
                           <button
                             type="button"
+                            tabIndex={0}
                             onClick={() => removePlayer(name)}
                             className="hover:text-destructive"
                           >
@@ -285,6 +297,7 @@ export default function NewGame() {
             <Button
               type="button"
               size="lg"
+              tabIndex={0}
               onClick={handleStartGame}
               className="w-full rounded-full gap-1"
               disabled={selectedPlayers.length < 2}

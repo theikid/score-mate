@@ -61,6 +61,7 @@ export default function Home() {
             <Button
               variant="ghost"
               size="icon"
+              tabIndex={0}
               onClick={() => handleDeleteGame(game.id)}
               className="text-destructive hover:text-destructive rounded-full"
             >
@@ -80,6 +81,7 @@ export default function Home() {
             </div>
             {game.status === 'in-progress' && (
               <Button
+                tabIndex={0}
                 onClick={() => handlePlayGame(game.id)}
                 className="w-full mt-4"
               >
@@ -145,6 +147,7 @@ export default function Home() {
             <div className="space-y-3">
               <button
                 type="button"
+                tabIndex={0}
                 onClick={() => setShowCompleted(!showCompleted)}
                 className="w-full text-left"
               >

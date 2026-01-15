@@ -127,7 +127,7 @@
   button:focus-visible,
   input:focus-visible,
   [role="button"]:focus-visible {
-    outline: 2px solid oklch(0.269 0 0) !important;
+    outline: 3px solid #3b82f6 !important;
     outline-offset: 2px !important;
   }
 }
