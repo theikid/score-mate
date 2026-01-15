@@ -166,7 +166,7 @@ export default function Home() {
 
       {/* Bouton nouvelle partie - fixe en bas sur mobile, normal sur desktop */}
       <div className="fixed-bottom-button">
-        <div className="container max-w-2xl mx-auto">
+        <div className="container max-w-2xl mx-auto px-4">
           <Button
             size="lg"
             onClick={() => router.push('/new-game')}

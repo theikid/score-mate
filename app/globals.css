@@ -126,13 +126,13 @@
 
 @layer components {
   .fixed-bottom-button {
-    @apply fixed bottom-0 left-0 right-0 bg-background border-t border-border p-4 z-50;
+    @apply fixed bottom-0 left-0 right-0 bg-background border-t border-border py-4 z-50;
     box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);
   }
 
   @media (min-width: 768px) {
     .fixed-bottom-button {
-      @apply static border-t-0 p-0 shadow-none;
+      @apply static border-t-0 py-0 shadow-none;
     }
   }
 }
