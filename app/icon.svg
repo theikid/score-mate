@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <!-- Fond dégradé -->
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2563eb;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Fond -->
+  <rect width="128" height="128" rx="24" fill="url(#bgGrad)"/>
+
+  <!-- Carte arrière (gauche) -->
+  <rect x="20" y="35" width="42" height="58" rx="4" fill="#f8fafc" opacity="0.9" transform="rotate(-12 41 64)"/>
+  <rect x="23" y="38" width="36" height="52" rx="2" fill="#3b82f6" opacity="0.3" transform="rotate(-12 41 64)"/>
+
+  <!-- Carte avant (droite) - avec nombre -->
+  <rect x="52" y="30" width="50" height="68" rx="4" fill="#ffffff" transform="rotate(8 77 64)"/>
+  <text x="77" y="75" font-family="system-ui, sans-serif" font-size="38" font-weight="bold" fill="#2563eb" text-anchor="middle" transform="rotate(8 77 64)">7</text>
+
+  <!-- Point de score (symbole + en haut à droite de la carte) -->
+  <circle cx="92" cy="40" r="3" fill="#ef4444" transform="rotate(8 77 64)"/>
+  <circle cx="92" cy="88" r="3" fill="#ef4444" transform="rotate(8 77 64)"/>
+</svg>
