@@ -106,7 +106,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container max-w-2xl mx-auto p-4 pb-20">
+      <div className="container max-w-2xl mx-auto p-4 pb-24 md:pb-4">
         <div className="flex flex-col gap-6">
           {/* Header */}
           <div className="text-center pt-8 pb-4">
@@ -117,16 +117,6 @@ export default function Home() {
               Compteur de points pour Skyjo et Flip 7
             </p>
           </div>
-
-          {/* Bouton nouvelle partie */}
-          <Button
-            size="lg"
-            onClick={() => router.push('/new-game')}
-            className="w-full"
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            Nouvelle partie
-          </Button>
 
           {/* Parties en cours */}
           {activeGames.length > 0 && (
@@ -171,6 +161,20 @@ export default function Home() {
               )}
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Bouton nouvelle partie - fixe en bas sur mobile, normal sur desktop */}
+      <div className="fixed-bottom-button">
+        <div className="container max-w-2xl mx-auto">
+          <Button
+            size="lg"
+            onClick={() => router.push('/new-game')}
+            className="w-full"
+          >
+            <Plus className="w-5 h-5 mr-2" />
+            Nouvelle partie
+          </Button>
         </div>
       </div>
     </div>
