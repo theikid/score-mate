@@ -129,22 +129,26 @@ export default function Home() {
           </Button>
 
           {/* Parties en cours */}
-          <div className="space-y-3">
-            <h2 className="text-xl font-semibold">Parties en cours</h2>
-            {activeGames.length === 0 ? (
-              <Card>
-                <CardContent className="py-8 text-center text-muted-foreground">
-                  Aucune partie en cours.
-                  <br />
-                  Créez une nouvelle partie pour commencer !
-                </CardContent>
-              </Card>
-            ) : (
+          {activeGames.length > 0 && (
+            <div className="space-y-3">
+              <h2 className="text-xl font-semibold">Parties en cours</h2>
               <div className="space-y-3">
                 {activeGames.map(renderGameCard)}
               </div>
-            )}
-          </div>
+            </div>
+          )}
+
+          {/* Message quand aucune partie */}
+          {activeGames.length === 0 && completedGames.length === 0 && (
+            <Card>
+              <CardContent className="py-12 text-center text-muted-foreground">
+                <p className="text-lg mb-2">Aucune partie en cours</p>
+                <p className="text-sm">
+                  Créez une nouvelle partie pour commencer !
+                </p>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Parties terminées */}
           {completedGames.length > 0 && (
