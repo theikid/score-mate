@@ -62,7 +62,7 @@ export default function Home() {
               variant="ghost"
               size="icon"
               onClick={() => handleDeleteGame(game.id)}
-              className="text-destructive hover:text-destructive"
+              className="text-destructive hover:text-destructive rounded-full"
             >
               <Trash2 className="h-4 w-4" />
             </Button>
@@ -106,7 +106,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container max-w-2xl mx-auto p-4 pb-24 md:pb-4">
+      <div className="container max-w-2xl mx-auto p-4 pb-32 md:pb-4">
         <div className="flex flex-col gap-6">
           {/* Header */}
           <div className="text-center pt-8 pb-4">
@@ -144,6 +144,7 @@ export default function Home() {
           {completedGames.length > 0 && (
             <div className="space-y-3">
               <button
+                type="button"
                 onClick={() => setShowCompleted(!showCompleted)}
                 className="w-full text-left"
               >
@@ -166,13 +167,21 @@ export default function Home() {
 
       {/* Bouton nouvelle partie - fixe en bas sur mobile, normal sur desktop */}
       <div className="fixed-bottom-button">
-        <div className="container max-w-2xl mx-auto px-4">
+        <div className="max-w-2xl mx-auto">
           <Button
+            type="button"
             size="lg"
+            tabIndex={0}
             onClick={() => router.push('/new-game')}
-            className="w-full"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                router.push('/new-game');
+              }
+            }}
+            className="w-full rounded-full gap-1.5"
           >
-            <Plus className="w-5 h-5 mr-2" />
+            <Plus className="w-5 h-5" />
             Nouvelle partie
           </Button>
         </div>

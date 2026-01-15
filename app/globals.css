@@ -122,17 +122,36 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Focus visible amélioré pour une meilleure visibilité au clavier */
+  button:focus-visible,
+  input:focus-visible,
+  [role="button"]:focus-visible {
+    outline: 2px solid oklch(0.269 0 0) !important;
+    outline-offset: 2px !important;
+  }
 }
 
 @layer components {
   .fixed-bottom-button {
-    @apply fixed bottom-0 left-0 right-0 bg-background border-t border-border py-4 z-50;
+    @apply fixed bottom-0 left-0 right-0 bg-background border-t border-border z-50;
+    padding: 16px 0;
     box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+
+  .fixed-bottom-button > div {
+    padding: 0 16px;
   }
 
   @media (min-width: 768px) {
     .fixed-bottom-button {
-      @apply static border-t-0 py-0 shadow-none;
+      @apply static border-t-0 shadow-none;
+      padding: 0;
+      margin-top: 48px;
+    }
+
+    .fixed-bottom-button > div {
+      padding: 0;
     }
   }
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { GameType } from '@/types/game';
 import { createGame } from '@/lib/gameLogic';
@@ -23,6 +23,13 @@ export default function NewGame() {
   const getDefaultTargetScore = (type: GameType): number => {
     return type === 'skyjo' ? 100 : 200;
   };
+
+  // Pré-remplir le score cible quand le type de jeu change
+  useEffect(() => {
+    if (gameType) {
+      setCustomTargetScore(getDefaultTargetScore(gameType).toString());
+    }
+  }, [gameType]);
 
   const togglePresetPlayer = (name: string) => {
     if (selectedPlayers.includes(name)) {
@@ -75,7 +82,7 @@ export default function NewGame() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container max-w-2xl mx-auto p-4 pb-20">
+      <div className="container max-w-2xl mx-auto p-4 pb-24 md:pb-4">
         <div className="flex flex-col gap-6">
           {/* Header */}
           <div className="flex items-center gap-3 pt-4">
@@ -83,6 +90,7 @@ export default function NewGame() {
               variant="ghost"
               size="icon"
               onClick={() => router.push('/')}
+              className="rounded-full"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
@@ -99,6 +107,7 @@ export default function NewGame() {
             </CardHeader>
             <CardContent className="space-y-3">
               <button
+                type="button"
                 onClick={() => setGameType('skyjo')}
                 className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
                   gameType === 'skyjo'
@@ -120,6 +129,7 @@ export default function NewGame() {
               </button>
 
               <button
+                type="button"
                 onClick={() => setGameType('flip7')}
                 className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
                   gameType === 'flip7'
@@ -164,6 +174,7 @@ export default function NewGame() {
                     return (
                       <Button
                         key={name}
+                        type="button"
                         variant={isSelected ? 'default' : 'outline'}
                         onClick={() => togglePresetPlayer(name)}
                         className="h-12 relative"
@@ -189,7 +200,7 @@ export default function NewGame() {
                       value={customPlayerName}
                       onChange={(e) => setCustomPlayerName(e.target.value)}
                       onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
+                        if (e.key === 'Enter' && customPlayerName.trim() && selectedPlayers.length < 6) {
                           addCustomPlayer();
                         }
                       }}
@@ -197,12 +208,14 @@ export default function NewGame() {
                       className="flex-1"
                     />
                     <Button
+                      type="button"
                       onClick={addCustomPlayer}
                       disabled={
                         !customPlayerName.trim() || selectedPlayers.length >= 6
                       }
+                      className="gap-1"
                     >
-                      <Plus className="w-4 h-4 mr-2" />
+                      <Plus className="w-4 h-4" />
                       Ajouter
                     </Button>
                   </div>
@@ -221,6 +234,7 @@ export default function NewGame() {
                         >
                           {name}
                           <button
+                            type="button"
                             onClick={() => removePlayer(name)}
                             className="hover:text-destructive"
                           >
@@ -241,19 +255,18 @@ export default function NewGame() {
             </Card>
           )}
 
-          {/* Score cible personnalisé */}
+          {/* Score cible */}
           {gameType && (
             <Card>
               <CardHeader>
-                <CardTitle>Score cible (optionnel)</CardTitle>
+                <CardTitle>Score cible</CardTitle>
                 <CardDescription>
-                  Par défaut : {getDefaultTargetScore(gameType)} points
+                  Modifiez si vous souhaitez un score différent
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <Input
                   type="number"
-                  placeholder={`${getDefaultTargetScore(gameType)}`}
                   value={customTargetScore}
                   onChange={(e) => setCustomTargetScore(e.target.value)}
                   min="1"
@@ -262,19 +275,25 @@ export default function NewGame() {
             </Card>
           )}
 
-          {/* Bouton de démarrage */}
-          {gameType && (
+        </div>
+      </div>
+
+      {/* Bouton démarrer - fixe en bas sur mobile, normal sur desktop */}
+      {gameType && (
+        <div className="fixed-bottom-button">
+          <div className="max-w-2xl mx-auto">
             <Button
+              type="button"
               size="lg"
               onClick={handleStartGame}
-              className="w-full"
+              className="w-full rounded-full gap-1"
               disabled={selectedPlayers.length < 2}
             >
               Démarrer la partie
             </Button>
-          )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
