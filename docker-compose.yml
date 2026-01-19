@@ -1,12 +1,7 @@
 services:
   scoremate:
-    # Build depuis le Dockerfile local
-    build:
-      context: .
-      dockerfile: Dockerfile
-
-    # Nom de l'image explicite
-    image: scoremate:latest
+    # Image depuis GitHub Container Registry (buildée par GitHub Actions)
+    image: ghcr.io/theikid/score-mate:latest
 
     # Nom du container
     container_name: scoremate
