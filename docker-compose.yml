@@ -1,0 +1,76 @@
+services:
+  scoremate:
+    # Build depuis le Dockerfile local
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    # Nom de l'image explicite
+    image: scoremate:latest
+
+    # Nom du container
+    container_name: scoremate
+    
+    # Redémarrage automatique
+    restart: unless-stopped
+    
+    # Exposer le port (pas publier)
+    expose:
+      - "3000"
+    
+    # Réseau externe (purrgil)
+    networks:
+      - purrgil
+    
+    # Variables d'environnement
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - PORT=${PORT:-3000}
+      - HOST=${HOST:-0.0.0.0}
+      - DOMAIN=${DOMAIN:-scoremate.maximeealet.com}
+    
+    # Healthcheck
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    # Labels Traefik
+    labels:
+      # Activer Traefik
+      - "traefik.enable=true"
+      
+      # Middlewares
+      - "traefik.http.middlewares.gzip.compress=true"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      
+      # Router HTTP (redirect vers HTTPS) - DOMAINE FLEXIBLE
+      - "traefik.http.routers.scoremate-http.entrypoints=http"
+      - "traefik.http.routers.scoremate-http.rule=Host(`${DOMAIN:-scoremate.maximeealet.com}`)"
+      - "traefik.http.routers.scoremate-http.middlewares=redirect-to-https"
+      
+      # Router HTTPS (principal) - DOMAINE FLEXIBLE
+      - "traefik.http.routers.scoremate-https.entrypoints=https"
+      - "traefik.http.routers.scoremate-https.rule=Host(`${DOMAIN:-scoremate.maximeealet.com}`)"
+      - "traefik.http.routers.scoremate-https.tls=true"
+      - "traefik.http.routers.scoremate-https.tls.certresolver=letsencrypt"
+      
+      # SSO Authentication via Deflector
+      - "traefik.http.middlewares.sso-auth.forwardauth.address=http://deflector:3000/api/auth/verify"
+      - "traefik.http.middlewares.sso-auth.forwardauth.authResponseHeaders=X-Auth-User,X-Auth-Email,X-Auth-Id,X-Auth-Avatar"
+      - "traefik.http.middlewares.sso-auth.forwardauth.authRequestHeaders=X-Forwarded-Uri,X-Forwarded-Host,X-Forwarded-Proto,X-Forwarded-For,Cookie"
+      - "traefik.http.middlewares.sso-auth.forwardauth.trustForwardHeader=true"
+      - "traefik.http.middlewares.sso-auth.forwardauth.authResponseHeadersRegex=^X-"
+      
+      # Appliquer les middlewares
+      - "traefik.http.routers.scoremate-https.middlewares=sso-auth,gzip"
+      
+      # Service (port interne)
+      - "traefik.http.services.scoremate.loadbalancer.server.port=3000"
+
+# Réseau externe
+networks:
+  purrgil:
+    external: true
