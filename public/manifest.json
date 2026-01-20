@@ -1,0 +1,53 @@
+{
+  "name": "Score Mate - Compteur de points",
+  "short_name": "Score Mate",
+  "description": "Application mobile-first pour compter les points de vos parties de Skyjo et Flip 7",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-192-maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": ["games", "entertainment", "utilities"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Nouvelle partie",
+      "short_name": "Nouvelle",
+      "description": "Créer une nouvelle partie",
+      "url": "/new-game",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
+}
