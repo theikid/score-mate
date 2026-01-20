@@ -51,15 +51,6 @@ services:
       - "traefik.http.routers.scoremate-https.rule=Host(`${DOMAIN:-scoremate.maximeealet.com}`)"
       - "traefik.http.routers.scoremate-https.tls=true"
       - "traefik.http.routers.scoremate-https.tls.certresolver=letsencrypt"
-      
-      # SSO Authentication via Deflector
-      - "traefik.http.middlewares.sso-auth.forwardauth.address=http://deflector:3000/api/auth/verify"
-      - "traefik.http.middlewares.sso-auth.forwardauth.authResponseHeaders=X-Auth-User,X-Auth-Email,X-Auth-Id,X-Auth-Avatar"
-      - "traefik.http.middlewares.sso-auth.forwardauth.authRequestHeaders=X-Forwarded-Uri,X-Forwarded-Host,X-Forwarded-Proto,X-Forwarded-For,Cookie"
-      - "traefik.http.middlewares.sso-auth.forwardauth.trustForwardHeader=true"
-      - "traefik.http.middlewares.sso-auth.forwardauth.authResponseHeadersRegex=^X-"
-      
-      # Appliquer les middlewares
       - "traefik.http.routers.scoremate-https.middlewares=sso-auth,gzip"
       
       # Service (port interne)
