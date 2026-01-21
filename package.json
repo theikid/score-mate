@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "generate:icons": "node scripts/generate-icons.js",
-    "postinstall": "bash scripts/install-hooks.sh"
+    "postinstall": "test -d .git && sh scripts/install-hooks.sh || true"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
