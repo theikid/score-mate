@@ -1,11 +1,11 @@
-#!/bin/bash
+#!/bin/sh
 
 # Couleurs
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-echo -e "\n${BLUE}📦 Installation des git hooks ScoreMate${NC}\n"
+printf "\n${BLUE}📦 Installation des git hooks ScoreMate${NC}\n\n"
 
 # Créer le hook pre-push
 cat > .git/hooks/pre-push << 'EOF'
@@ -43,5 +43,5 @@ EOF
 
 chmod +x .git/hooks/pre-push
 
-echo -e "${GREEN}✅ Git hooks installés avec succès!${NC}"
-echo -e "${GREEN}   • pre-push: Force l'utilisation de release.sh pour les releases${NC}\n"
+printf "${GREEN}✅ Git hooks installés avec succès!${NC}\n"
+printf "${GREEN}   • pre-push: Force l'utilisation de release.sh pour les releases${NC}\n\n"
