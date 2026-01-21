@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+# Définir la variable pour bypasser le hook pre-push
+export RELEASE_SCRIPT=1
+
 # Couleurs pour les messages
 RED='\033[0;31m'
 GREEN='\033[0;32m'
