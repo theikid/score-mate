@@ -1,5 +1,8 @@
 FROM node:22-alpine AS base
 
+# Version argument (passed during build)
+ARG VERSION=dev
+
 # Install dependencies only when needed
 FROM base AS deps
 RUN apk add --no-cache libc6-compat
@@ -25,8 +28,18 @@ RUN npm run build
 FROM base AS runner
 WORKDIR /app
 
+# Re-declare ARG to use in this stage
+ARG VERSION=dev
+
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV APP_VERSION="${VERSION}"
+
+# Add labels for version tracking
+LABEL org.opencontainers.image.version="${VERSION}"
+LABEL org.opencontainers.image.title="ScoreMate"
+LABEL org.opencontainers.image.description="Score tracking PWA for board games"
+LABEL com.scoremate.version="${VERSION}"
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
@@ -42,6 +55,10 @@ RUN chown nextjs:nodejs .next
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+# Copy and setup entrypoint script
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 USER nextjs
 
 EXPOSE 3000
@@ -49,4 +66,5 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["node", "server.js"]

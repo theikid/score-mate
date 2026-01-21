@@ -76,6 +76,7 @@ echo -e "${BLUE}Image: ghcr.io/theikid/score-mate:$VERSION${NC}\n"
 
 docker buildx build \
   --platform linux/arm64 \
+  --build-arg VERSION="$VERSION" \
   -t ghcr.io/theikid/score-mate:latest \
   -t ghcr.io/theikid/score-mate:"$VERSION" \
   --push \
