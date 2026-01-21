@@ -76,6 +76,7 @@ echo -e "${BLUE}Image: ghcr.io/theikid/score-mate:$VERSION${NC}\n"
 
 docker buildx build \
   --platform linux/arm64 \
+  --build-arg VERSION="$VERSION" \
   -t ghcr.io/theikid/score-mate:latest \
   -t ghcr.io/theikid/score-mate:"$VERSION" \
   --push \
@@ -85,16 +86,6 @@ docker buildx build \
 echo -e "\n${BLUE}📤 Push vers GitHub...${NC}"
 git push origin main
 git push origin "$VERSION"
-
-# Créer la GitHub Release
-echo -e "\n${BLUE}📦 Création de la GitHub Release...${NC}"
-gh release create "$VERSION" --title "$VERSION" --notes "Release $VERSION
-
-Images Docker disponibles :
-- \`ghcr.io/theikid/score-mate:$VERSION\`
-- \`ghcr.io/theikid/score-mate:latest\`
-
-Le déploiement se déclenchera automatiquement via webhook."
 
 # Retourner sur develop et sync
 echo -e "\n${BLUE}Retour sur develop et synchronisation...${NC}"
