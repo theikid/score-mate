@@ -15,14 +15,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -30,7 +22,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Plus, Trophy } from 'lucide-react';
+import { ArrowLeft, Plus, Trophy, Calculator, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { ThemeToggle } from '@/components/theme-toggle';
+import { Calculator as CalculatorComponent } from '@/components/calculator';
 
 export default function GamePage() {
   const router = useRouter();
@@ -40,6 +34,8 @@ export default function GamePage() {
   const [game, setGame] = useState<Game | null>(null);
   const [roundScores, setRoundScores] = useState<Record<string, string>>({});
   const [showWinnerDialog, setShowWinnerDialog] = useState(false);
+  const [calculatorOpen, setCalculatorOpen] = useState<string | null>(null);
+  const [isScoreEntryExpanded, setIsScoreEntryExpanded] = useState(true);
 
   useEffect(() => {
     const loadedGame = getGame(gameId);
@@ -55,6 +51,11 @@ export default function GamePage() {
       initialScores[player.id] = '';
     });
     setRoundScores(initialScores);
+
+    // Afficher la modal si la partie est terminée
+    if (loadedGame.status === 'completed') {
+      setShowWinnerDialog(true);
+    }
   }, [gameId, router]);
 
   const handleScoreChange = (playerId: string, value: string) => {
@@ -125,200 +126,194 @@ export default function GamePage() {
   const leader = leaderboard[0];
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container max-w-4xl mx-auto p-4 pb-20">
-        <div className="flex flex-col gap-6">
-          {/* Header */}
-          <div className="flex items-center gap-3 pt-4">
-            <Button variant="ghost" size="icon" tabIndex={0} onClick={handleCloseGame} className="rounded-full">
+    <div className="bg-background flex flex-col" style={{ height: '100dvh' }}>
+      <div className={`container max-w-4xl mx-auto px-4 flex-1 flex flex-col overflow-y-auto ${game.status === 'completed' ? 'pb-4' : isScoreEntryExpanded ? 'pb-[350px]' : 'pb-20'} md:pb-4`}>
+        <div className="flex flex-col gap-6 pt-4">
+          {/* Header Score Mate */}
+          <div className="flex items-start justify-between safe-top-header-lg">
+            <Button variant="ghost" size="icon" tabIndex={0} onClick={handleCloseGame} className="rounded-full -ml-2">
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <div className="flex-1">
-              <h1 className="text-2xl font-bold">{getGameName(game.type)}</h1>
+            <div className="flex-1 text-center">
+              <h1 className="text-3xl font-bold tracking-tight">
+                Score Mate
+              </h1>
+            </div>
+            <ThemeToggle />
+          </div>
+
+          {/* Info de la partie */}
+          <div className="border-t border-border pt-4 pb-4">
+            <div className="text-center space-y-2">
+              <h2 className="text-2xl font-bold">{getGameName(game.type)}</h2>
               <p className="text-sm text-muted-foreground">
-                {getScoringDescription(game.scoringSystem)} • Cible :{' '}
-                {game.targetScore} pts
+                {getScoringDescription(game.scoringSystem)} • Cible : {game.targetScore} pts
               </p>
             </div>
           </div>
 
-          {/* Tableau des scores */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Scores</CardTitle>
-            </CardHeader>
-            <CardContent className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-24">Manche</TableHead>
-                    {game.players.map((player) => (
-                      <TableHead key={player.id} className="text-center">
-                        {player.name}
-                        {leader.playerId === player.id &&
-                          game.rounds.length > 0 && (
-                            <Badge
-                              variant="secondary"
-                              className="ml-1 text-xs"
-                            >
-                              1er
-                            </Badge>
-                          )}
-                      </TableHead>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {game.rounds.map((round, index) => (
-                    <TableRow key={round.id}>
-                      <TableCell className="font-medium">
-                        Manche {index + 1}
-                      </TableCell>
-                      {game.players.map((player) => (
-                        <TableCell
-                          key={player.id}
-                          className="text-center"
-                        >
-                          {round.scores[player.id]}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))}
-                  {game.rounds.length === 0 && (
-                    <TableRow>
-                      <TableCell
-                        colSpan={game.players.length + 1}
-                        className="text-center text-muted-foreground py-8"
-                      >
-                        Aucune manche jouée. Commencez en saisissant les
-                        scores ci-dessous.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                  {/* Ligne des totaux */}
-                  {game.rounds.length > 0 && (
-                    <TableRow className="bg-muted/50 font-semibold">
-                      <TableCell>TOTAL</TableCell>
-                      {game.players.map((player) => (
-                        <TableCell
-                          key={player.id}
-                          className="text-center"
-                        >
-                          {totals[player.id]}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-
-          {/* Saisie nouvelle manche */}
-          {game.status === 'in-progress' && (
+          {/* Classement & Historique - affiché uniquement si au moins 1 manche jouée */}
+          {game.rounds.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>
-                  Nouvelle manche (#{game.rounds.length + 1})
-                </CardTitle>
+                <CardTitle className="text-lg">Classement & Historique</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
+              <CardContent className="space-y-4">
+                {/* Classement actuel */}
+                <div className="space-y-2">
+                  {leaderboard.map((entry, index) => {
+                    const player = game.players.find((p) => p.id === entry.playerId);
+                    if (!player) return null;
+                    return (
+                      <div
+                        key={player.id}
+                        className="flex items-center justify-between p-3 rounded-lg bg-muted/30"
+                      >
+                        <div className="flex items-center gap-3">
+                          <Badge variant={index === 0 ? 'default' : 'secondary'} className="text-xs min-w-[32px] justify-center">
+                            {index + 1}
+                          </Badge>
+                          <span className="font-medium">{player.name}</span>
+                        </div>
+                        <span className="font-semibold text-lg">{entry.totalScore} pts</span>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Historique */}
+                <div className="pt-4">
+                  <h4 className="text-sm font-semibold text-muted-foreground mb-3">Détail des manches</h4>
+
+                  {/* Historique en colonnes */}
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="text-left py-2 px-2 font-semibold text-xs text-muted-foreground">Joueur</th>
+                          {game.rounds.map((round, index) => (
+                            <th key={round.id} className="text-center py-2 px-2 font-semibold text-xs text-muted-foreground">
+                              M{index + 1}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {game.players.map((player) => (
+                          <tr key={player.id} className="border-b last:border-0">
+                            <td className="py-2 px-2 font-medium">{player.name}</td>
+                            {game.rounds.map((round) => (
+                              <td key={round.id} className="text-center py-2 px-2">
+                                {round.scores[player.id]}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+        </div>
+      </div>
+
+      {/* Saisie nouvelle manche - fixe en bas sur mobile */}
+      {game.status === 'in-progress' && (
+        <div className={`fixed-bottom-button ${!isScoreEntryExpanded ? '!py-4' : ''}`}>
+          <div className="fixed-bottom-button-content">
+            <div className="container max-w-4xl mx-auto">
+              <div className="space-y-6">
+              <button
+                onClick={() => setIsScoreEntryExpanded(!isScoreEntryExpanded)}
+                className="flex items-center justify-between w-full text-left"
+              >
+                <h3 className="text-xl font-bold">
+                  Manche {game.rounds.length + 1} (en cours)
+                </h3>
+                {isScoreEntryExpanded ? (
+                  <ChevronDown className="h-6 w-6" />
+                ) : (
+                  <ChevronUp className="h-6 w-6" />
+                )}
+              </button>
+              {isScoreEntryExpanded && (
+                <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
                   {game.players.map((player) => (
                     <div key={player.id} className="flex items-center gap-3">
                       <label className="w-32 text-sm font-medium">
                         {player.name}
                       </label>
-                      <Input
-                        type="number"
-                        placeholder="Score"
-                        value={roundScores[player.id] || ''}
-                        onChange={(e) =>
-                          handleScoreChange(player.id, e.target.value)
-                        }
-                        className="flex-1"
-                        inputMode="numeric"
-                      />
+                      <div className="flex gap-2 flex-1">
+                        <div className="relative flex-1">
+                          <Input
+                            type="number"
+                            placeholder="Score"
+                            value={roundScores[player.id] || ''}
+                            onChange={(e) =>
+                              handleScoreChange(player.id, e.target.value)
+                            }
+                            className={roundScores[player.id] ? 'pr-10' : ''}
+                            inputMode="numeric"
+                          />
+                          {roundScores[player.id] && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleScoreChange(player.id, '')}
+                              aria-label={`Effacer le score de ${player.name}`}
+                              className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => setCalculatorOpen(player.id)}
+                          aria-label={`Ouvrir la calculatrice pour ${player.name}`}
+                        >
+                          <Calculator className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   ))}
                   <Button
                     onClick={handleAddRound}
-                    className="w-full mt-4 gap-1.5"
+                    className="w-full mt-4 gap-2 h-14 text-lg font-semibold rounded-full"
                     size="lg"
                   >
-                    <Plus className="w-5 h-5" />
+                    <Plus className="w-6 h-6" />
                     Valider la manche
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Classement actuel */}
-          {game.rounds.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Classement</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {leaderboard.map((player) => (
-                    <div
-                      key={player.playerId}
-                      className="flex items-center justify-between p-3 rounded-lg bg-muted/30"
-                    >
-                      <div className="flex items-center gap-3">
-                        <Badge
-                          variant={
-                            player.rank === 1 ? 'default' : 'secondary'
-                          }
-                        >
-                          #{player.rank}
-                        </Badge>
-                        <span className="font-medium">
-                          {player.playerName}
-                        </span>
-                      </div>
-                      <span className="font-semibold">
-                        {player.totalScore} pts
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+              )}
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Modal de victoire */}
       <Dialog open={showWinnerDialog} onOpenChange={setShowWinnerDialog}>
-        <DialogContent>
+        <DialogContent onOpenAutoFocus={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle className="text-center text-2xl">
               <Trophy className="w-12 h-12 mx-auto mb-4 text-yellow-500" />
-              Partie terminée !
-            </DialogTitle>
-            <DialogDescription className="text-center text-lg">
               {game.winner && (
                 <>
-                  <span className="font-bold text-foreground text-xl">
-                    {
-                      game.players.find((p) => p.id === game.winner)
-                        ?.name
-                    }
-                  </span>
-                  <br />
-                  remporte la partie avec{' '}
-                  {totals[game.winner]} points !
+                  {game.players.find((p) => p.id === game.winner)?.name} remporte la partie
                 </>
               )}
-            </DialogDescription>
+            </DialogTitle>
           </DialogHeader>
 
           {/* Classement final */}
           <div className="space-y-2 mt-4">
-            <h3 className="font-semibold text-center mb-3">
+            <h3 className="font-normal text-center mb-3">
               Classement final
             </h3>
             {leaderboard.map((player, index) => (
@@ -327,7 +322,7 @@ export default function GamePage() {
                 className={`flex items-center justify-between p-3 rounded-lg ${
                   index === 0
                     ? 'bg-yellow-500/20 border-2 border-yellow-500'
-                    : 'bg-muted'
+                    : 'bg-card'
                 }`}
               >
                 <div className="flex items-center gap-3">
@@ -351,15 +346,33 @@ export default function GamePage() {
 
           <div className="flex gap-2 mt-4">
             <Button
-              variant="outline"
+              size="lg"
               onClick={handleCloseGame}
-              className="flex-1"
+              className="flex-1 h-14 text-lg font-semibold rounded-full focus-visible:outline-0 focus-visible:ring-0"
             >
               Retour à l'accueil
             </Button>
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Calculatrice */}
+      <CalculatorComponent
+        isOpen={calculatorOpen !== null}
+        onClose={() => setCalculatorOpen(null)}
+        onValidate={(result) => {
+          if (calculatorOpen) {
+            handleScoreChange(calculatorOpen, result.toString());
+            setCalculatorOpen(null);
+          }
+        }}
+        playerName={
+          calculatorOpen
+            ? game.players.find((p) => p.id === calculatorOpen)?.name
+            : undefined
+        }
+        initialValue={calculatorOpen ? roundScores[calculatorOpen] : undefined}
+      />
     </div>
   );
 }
