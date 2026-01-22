@@ -34,6 +34,7 @@ ARG VERSION=dev
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV APP_VERSION="${VERSION}"
+ENV NEXT_PUBLIC_APP_VERSION="${VERSION}"
 
 # Add labels for version tracking
 LABEL org.opencontainers.image.version="${VERSION}"

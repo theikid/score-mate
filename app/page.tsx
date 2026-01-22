@@ -195,6 +195,13 @@ export default function Home() {
               )}
             </div>
           )}
+
+          {/* Version */}
+          {process.env.NEXT_PUBLIC_APP_VERSION && (
+            <div className="text-center py-4 text-xs text-muted-foreground">
+              Version {process.env.NEXT_PUBLIC_APP_VERSION}
+            </div>
+          )}
           </div>
         </div>
       </div>
