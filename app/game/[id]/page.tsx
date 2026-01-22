@@ -127,21 +127,24 @@ export default function GamePage() {
 
   return (
     <div className="bg-background flex flex-col" style={{ height: '100dvh' }}>
-      <div className={`container max-w-4xl mx-auto px-4 flex-1 flex flex-col overflow-y-auto ${game.status === 'completed' ? 'pb-4' : isScoreEntryExpanded ? 'pb-[350px]' : 'pb-20'} md:pb-4`}>
-        <div className="flex flex-col gap-6 pt-4">
-          {/* Header Score Mate */}
-          <div className="flex items-start justify-between safe-top-header-lg">
-            <Button variant="ghost" size="icon" tabIndex={0} onClick={handleCloseGame} className="rounded-full -ml-2">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <div className="flex-1 text-center">
-              <h1 className="text-3xl font-bold tracking-tight">
-                Score Mate
-              </h1>
-            </div>
-            <ThemeToggle />
+      {/* Header Score Mate - FIXE EN HAUT */}
+      <div className="container max-w-4xl mx-auto px-4 shrink-0">
+        <div className="flex items-start justify-between safe-top-header-lg pb-4">
+          <Button variant="ghost" size="icon" tabIndex={0} onClick={handleCloseGame} className="rounded-full -ml-2">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div className="flex-1 text-center">
+            <h1 className="text-3xl font-bold tracking-tight">
+              Score Mate
+            </h1>
           </div>
+          <ThemeToggle />
+        </div>
+      </div>
 
+      {/* Contenu scrollable */}
+      <div className={`container max-w-4xl mx-auto px-4 flex-1 flex flex-col overflow-y-auto ${game.status === 'completed' ? 'pb-4' : isScoreEntryExpanded ? 'pb-[350px]' : 'pb-20'} md:pb-4`}>
+        <div className="flex flex-col gap-6">
           {/* Info de la partie */}
           <div className="border-t border-border pt-4 pb-4">
             <div className="text-center space-y-2">
