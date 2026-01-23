@@ -1,7 +1,7 @@
 services:
   scoremate:
     # Image depuis GitHub Container Registry (buildée par GitHub Actions)
-    image: ghcr.io/theikid/score-mate:latest
+    image: ghcr.io/theikid/score-mate:v0.1.1
 
     # Toujours pull la dernière version à chaque déploiement
     pull_policy: always
