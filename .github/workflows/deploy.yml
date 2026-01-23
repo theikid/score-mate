@@ -1,0 +1,41 @@
+name: Deploy to Lothal
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Trigger Dockhand deployment with retry
+        run: |
+          echo "🚀 Déclenchement du déploiement sur Lothal..."
+
+          for attempt in {1..3}; do
+            echo "Tentative $attempt/3..."
+
+            HTTP_CODE=$(curl -X POST -s -o /dev/null -w "%{http_code}" \
+              https://truenas-holonet.tailcc5936.ts.net/api/git/stacks/7/webhook)
+
+            if [ "$HTTP_CODE" -eq 200 ]; then
+              echo "✅ Déploiement déclenché avec succès ! (HTTP $HTTP_CODE)"
+              exit 0
+            fi
+
+            echo "❌ Échec (HTTP $HTTP_CODE)"
+
+            if [ $attempt -lt 3 ]; then
+              echo "Nouvelle tentative dans 10 secondes..."
+              sleep 10
+            fi
+          done
+
+          echo "❌ Échec après 3 tentatives"
+          exit 1
