@@ -5,75 +5,177 @@ set -e
 export RELEASE_SCRIPT=1
 
 # Couleurs pour les messages
-RED='\033[0;31m'
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
+RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-echo -e "\n${BLUE}🚀 Script de release ScoreMate${NC}\n"
+echo -e "${BLUE}=== ScoreMate Release Script ===${NC}"
 
-# Vérifier qu'on est sur develop
+# Vérifier qu'on est sur la branche develop
 CURRENT_BRANCH=$(git branch --show-current)
 if [ "$CURRENT_BRANCH" != "develop" ]; then
-  echo -e "${RED}❌ Erreur: Vous devez être sur la branche 'develop' pour créer une release${NC}"
-  echo -e "Branche actuelle: $CURRENT_BRANCH"
+  echo -e "${RED}Erreur: Ce script doit être exécuté depuis la branche develop${NC}"
+  echo "Branche actuelle: $CURRENT_BRANCH"
   exit 1
 fi
 
 # Vérifier qu'il n'y a pas de changements non commités
 if ! git diff-index --quiet HEAD --; then
-  echo -e "${RED}❌ Erreur: Il y a des changements non commités${NC}"
-  echo -e "Commitez ou stash vos changements avant de créer une release"
+  echo -e "${RED}Erreur: Il y a des changements non commités${NC}"
+  git status --short
   exit 1
 fi
 
-# Version depuis l'argument ou demande interactive
+# Lire la version actuelle depuis package.json
+CURRENT_VERSION=$(node -e "console.log(require('./package.json').version)")
+echo -e "\n${BLUE}Version actuelle: v$CURRENT_VERSION${NC}"
+
+# Version depuis l'argument
 if [ -n "$1" ]; then
-  VERSION="$1"
-  echo -e "\n${BLUE}Version spécifiée: $VERSION${NC}"
+  case "$1" in
+    patch|minor|major)
+      # Auto-incrément selon le type
+      IFS='.' read -r -a VERSION_PARTS <<< "$CURRENT_VERSION"
+      MAJOR="${VERSION_PARTS[0]}"
+      MINOR="${VERSION_PARTS[1]}"
+      PATCH="${VERSION_PARTS[2]}"
+
+      case "$1" in
+        major)
+          MAJOR=$((MAJOR + 1))
+          MINOR=0
+          PATCH=0
+          ;;
+        minor)
+          MINOR=$((MINOR + 1))
+          PATCH=0
+          ;;
+        patch)
+          PATCH=$((PATCH + 1))
+          ;;
+      esac
+
+      NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+      VERSION="v$NEW_VERSION"
+      echo -e "${BLUE}Type: $1 → Nouvelle version: $VERSION${NC}"
+      ;;
+    v*)
+      # Version spécifiée directement
+      VERSION="$1"
+      NEW_VERSION="${VERSION#v}"
+      echo -e "${BLUE}Version spécifiée: $VERSION${NC}"
+      ;;
+    *)
+      echo -e "${RED}Erreur: Argument invalide. Utilisez 'patch', 'minor', 'major' ou 'vX.Y.Z'${NC}"
+      exit 1
+      ;;
+  esac
 else
-  echo -e "\n${BLUE}Entrez la nouvelle version (ex: v1.0.0):${NC}"
-  read -r VERSION
+  echo -e "\n${BLUE}Type de release (patch/minor/major) ou version (ex: v2.0):${NC}"
+  read -r INPUT
+
+  case "$INPUT" in
+    patch|minor|major)
+      IFS='.' read -r -a VERSION_PARTS <<< "$CURRENT_VERSION"
+      MAJOR="${VERSION_PARTS[0]}"
+      MINOR="${VERSION_PARTS[1]}"
+      PATCH="${VERSION_PARTS[2]}"
+
+      case "$INPUT" in
+        major)
+          MAJOR=$((MAJOR + 1))
+          MINOR=0
+          PATCH=0
+          ;;
+        minor)
+          MINOR=$((MINOR + 1))
+          PATCH=0
+          ;;
+        patch)
+          PATCH=$((PATCH + 1))
+          ;;
+      esac
+
+      NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+      VERSION="v$NEW_VERSION"
+      ;;
+    *)
+      VERSION="$INPUT"
+      NEW_VERSION="${VERSION#v}"
+      ;;
+  esac
+fi
+
+# Valider le format de version
+if [[ ! $VERSION =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  echo -e "${RED}Erreur: Format de version invalide. Utilisez patch/minor/major ou v2.0.1${NC}"
+  exit 1
 fi
 
 # Vérifier que le tag n'existe pas déjà
 if git rev-parse "$VERSION" >/dev/null 2>&1; then
-  echo -e "${RED}❌ Erreur: Le tag $VERSION existe déjà${NC}"
+  echo -e "${RED}Erreur: Le tag $VERSION existe déjà${NC}"
   exit 1
 fi
 
-echo -e "\n${BLUE}📦 Création de la release $VERSION${NC}\n"
+echo -e "\n${GREEN}✓ Validation OK${NC}"
+echo -e "${BLUE}Version: $VERSION${NC}"
 
-# Mettre à jour depuis origin
-echo -e "${BLUE}Récupération des dernières modifications...${NC}"
-git fetch origin
+# Demander confirmation
+echo -e "\n${BLUE}Actions à effectuer:${NC}"
+echo "1. Mettre à jour package.json avec la version $NEW_VERSION"
+echo "2. Merger develop dans main"
+echo "3. Mettre à jour compose.yaml avec la version Docker"
+echo "4. Créer le tag $VERSION sur main"
+echo "5. Builder l'image Docker ARM64"
+echo "6. Pusher l'image vers ghcr.io/theikid/score-mate:latest et :$VERSION"
+echo "7. Pusher main et le tag vers GitHub"
+echo "8. Pusher develop vers GitHub"
+echo ""
+echo -e "${BLUE}Continuer? (y/n)${NC}"
+read -r CONFIRM
 
-# Merger develop dans main
-echo -e "\n${BLUE}Merge de develop dans main...${NC}"
+if [ "$CONFIRM" != "y" ] && [ "$CONFIRM" != "Y" ]; then
+  echo -e "${RED}Annulé${NC}"
+  exit 0
+fi
+
+# Étape 0: Mettre à jour package.json sur develop
+echo -e "\n${BLUE}[1/8] Mise à jour de package.json et package-lock.json sur develop...${NC}"
+npm version "$NEW_VERSION" --no-git-tag-version
+git add package.json package-lock.json
+git commit -m "chore: Bump version to $NEW_VERSION"
+
+# Étape 1: Merger develop dans main
+echo -e "\n${BLUE}[2/8] Checkout main...${NC}"
 git checkout main
+
+echo -e "${BLUE}[3/8] Pull latest main...${NC}"
 git pull origin main
+
+echo -e "${BLUE}[4/8] Merge develop dans main...${NC}"
 git merge develop --no-ff -m "Merge develop into main for release $VERSION"
 
-# Créer le tag
-echo -e "\n${BLUE}Création du tag $VERSION...${NC}"
+# Étape 2: Mettre à jour la version dans compose.yaml
+echo -e "\n${BLUE}[5/8] Mise à jour de la version dans compose.yaml...${NC}"
+sed -i.bak "s|image: ghcr.io/theikid/score-mate:v.*|image: ghcr.io/theikid/score-mate:$VERSION|" compose.yaml
+sed -i.bak "s|image: ghcr.io/theikid/score-mate:latest|image: ghcr.io/theikid/score-mate:$VERSION|" compose.yaml
+rm -f compose.yaml.bak
+git add compose.yaml
+git commit -m "chore: Update Docker image version to $VERSION in compose.yaml" || echo "No changes to commit"
+
+# Étape 3: Créer le tag
+echo -e "\n${BLUE}[5/7] Création du tag $VERSION...${NC}"
 git tag -a "$VERSION" -m "Release $VERSION"
 
-# Vérifier que Docker est en cours d'exécution
-if ! docker info >/dev/null 2>&1; then
-  echo -e "${RED}❌ Erreur: Docker n'est pas en cours d'exécution${NC}"
-  exit 1
-fi
+# Étape 3: Builder et pusher l'image Docker
+echo -e "\n${BLUE}[6/8] Build et push de l'image Docker...${NC}"
+echo -e "${BLUE}Registry: ghcr.io/theikid/score-mate${NC}"
+echo -e "${BLUE}Note: Assurez-vous d'être connecté à GHCR: docker login ghcr.io -u theikid${NC}"
 
-# Vérifier la connexion à GHCR
-echo -e "\n${BLUE}Vérification de la connexion à GHCR...${NC}"
-if ! docker pull ghcr.io/theikid/score-mate:latest >/dev/null 2>&1; then
-  echo -e "${RED}⚠️  Pas de connexion à GHCR ou image introuvable (normal pour la première release)${NC}"
-fi
-
-# Builder l'image avec buildx pour ARM64 (architecture de Lothal)
-echo -e "\n${BLUE}🔨 Build de l'image Docker (ARM64)...${NC}"
-echo -e "${BLUE}Image: ghcr.io/theikid/score-mate:$VERSION${NC}\n"
-
+# Builder l'image avec buildx pour ARM64
+echo -e "${BLUE}Building ARM64 image...${NC}"
 docker buildx build \
   --platform linux/arm64 \
   --build-arg VERSION="$VERSION" \
@@ -82,19 +184,21 @@ docker buildx build \
   --push \
   .
 
-# Push vers GitHub
-echo -e "\n${BLUE}📤 Push vers GitHub...${NC}"
+# Étape 4: Push main et tags
+echo -e "\n${BLUE}[7/8] Push main et tags vers GitHub...${NC}"
 git push origin main
 git push origin "$VERSION"
 
-# Retourner sur develop et sync
-echo -e "\n${BLUE}Retour sur develop et synchronisation...${NC}"
+# Retour sur develop et push
+echo -e "\n${BLUE}[8/8] Retour sur develop et synchronisation...${NC}"
 git checkout develop
-git merge main -m "Sync with main after release $VERSION"
 git push origin develop
 
-echo -e "\n${GREEN}✅ Release $VERSION créée avec succès!${NC}"
-echo -e "${GREEN}   • Image: ghcr.io/theikid/score-mate:$VERSION${NC}"
-echo -e "${GREEN}   • Image: ghcr.io/theikid/score-mate:latest${NC}"
-echo -e "${GREEN}   • Tag Git: $VERSION${NC}"
-echo -e "${GREEN}   • Le webhook GitHub déclenchera le déploiement automatiquement${NC}\n"
+echo -e "\n${GREEN}✓ Release $VERSION terminée avec succès!${NC}"
+echo -e "${BLUE}Image Docker:${NC}"
+echo "  - ghcr.io/theikid/score-mate:latest"
+echo "  - ghcr.io/theikid/score-mate:$VERSION"
+echo ""
+echo -e "${BLUE}Prochaines étapes:${NC}"
+echo "1. Déployer via Dockhand sur Lothal"
+echo "2. Vérifier que l'application fonctionne"
