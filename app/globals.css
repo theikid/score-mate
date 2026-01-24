@@ -213,24 +213,6 @@
     padding: 0 20px;
   }
 
-  @media (min-width: 768px) {
-    .fixed-bottom-button {
-      @apply static border-t-0 shadow-none;
-      background-color: transparent !important;
-      backdrop-filter: none !important;
-      padding: 24px 0 !important;
-      margin-top: 48px;
-      max-height: none;
-    }
-
-    .fixed-bottom-button::before {
-      display: none;
-    }
-
-    .fixed-bottom-button > div {
-      padding: 0;
-    }
-  }
 
   /* Classe utilitaire pour les headers iOS - padding top pour éviter la notch */
   .safe-top {

@@ -123,7 +123,7 @@ export default function NewGame() {
         Aller au contenu principal
       </a>
 
-      <div className="container max-w-2xl mx-auto px-4 pb-24 md:pb-4 flex-1 flex flex-col overflow-y-auto">
+      <div className="container max-w-2xl mx-auto px-4 pb-24 flex-1 flex flex-col overflow-y-auto">
         {/* Header */}
         <header className="flex items-center gap-3 safe-top pt-8 pb-10 shrink-0">
           <Button
@@ -365,7 +365,7 @@ export default function NewGame() {
       {/* Boutons navigation */}
       {step > 1 && (
         <footer className="fixed-bottom-button">
-          <div className="w-full md:max-w-2xl mx-auto">
+          <div className="w-full md:max-w-2xl mx-auto flex justify-center">
             <div className="flex gap-3">
               <Button
                 type="button"
@@ -382,7 +382,7 @@ export default function NewGame() {
                   type="button"
                   size="lg"
                   onClick={handleNext}
-                  className="flex-1 rounded-full gap-2 h-14 text-lg font-semibold"
+                  className="w-full md:w-auto md:min-w-[320px] rounded-full gap-2 h-14 text-lg font-semibold"
                   disabled={selectedPlayers.length < 2}
                 >
                   Suivant
@@ -394,7 +394,7 @@ export default function NewGame() {
                   type="button"
                   size="lg"
                   onClick={handleStartGame}
-                  className="flex-1 rounded-full gap-2 h-14 text-lg font-semibold"
+                  className="w-full md:w-auto md:min-w-[320px] rounded-full gap-2 h-14 text-lg font-semibold"
                 >
                   Démarrer la partie
                 </Button>

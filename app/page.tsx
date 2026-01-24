@@ -183,7 +183,7 @@ export default function Home() {
 
       {/* Contenu principal scrollable */}
       <main id="main-content" className="flex-1 overflow-y-auto min-h-0">
-        <div className={`container max-w-2xl mx-auto px-4 h-full flex flex-col ${activeGames.length === 0 && completedGames.length === 0 ? 'pb-[120px]' : 'pb-4'} md:pb-4`}>
+        <div className={`container max-w-2xl mx-auto px-4 h-full flex flex-col ${activeGames.length === 0 && completedGames.length === 0 ? 'pb-[120px]' : 'pb-4'}`}>
           <div className={`flex flex-col gap-6 py-4 ${activeGames.length === 0 && completedGames.length === 0 ? 'flex-1 justify-center' : ''}`}>
           {/* Partie en cours */}
           {activeGames.length > 0 && (
