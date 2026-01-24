@@ -136,7 +136,7 @@ export default function GamePage() {
       </a>
 
       {/* Contenu scrollable */}
-      <div className={`flex-1 flex flex-col overflow-y-auto min-h-0 ${game.status === 'completed' ? 'pb-4' : isScoreEntryExpanded ? 'pb-[300px]' : 'pb-6'} md:pb-4`}>
+      <div className={`flex-1 flex flex-col overflow-y-auto min-h-0 ${game.status === 'completed' ? 'pb-4' : isScoreEntryExpanded ? 'pb-[300px]' : 'pb-6'}`}>
         {/* Header Score Mate - STICKY EN HAUT */}
         <header
           className="sticky top-0 z-10 bg-background"
@@ -248,7 +248,7 @@ export default function GamePage() {
       {game.status === 'in-progress' && (
         <footer className={`fixed-bottom-button ${!isScoreEntryExpanded ? '!py-6' : ''}`}>
           <div className="fixed-bottom-button-content">
-            <div className="container max-w-4xl mx-auto">
+            <div className="container max-w-3xl mx-auto">
               <div className="space-y-6">
               <button
                 onClick={() => setIsScoreEntryExpanded(!isScoreEntryExpanded)}
