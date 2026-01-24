@@ -8,6 +8,22 @@ import { getGameName, calculateTotals, getLeaderboard } from '@/lib/gameLogic';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Plus, Play, Trash2, Trophy, ChevronDown, ChevronRight } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme-toggle';
 
@@ -16,6 +32,8 @@ export default function Home() {
   const [activeGames, setActiveGames] = useState<Game[]>([]);
   const [completedGames, setCompletedGames] = useState<Game[]>([]);
   const [showCompleted, setShowCompleted] = useState(false);
+  const [gameToDelete, setGameToDelete] = useState<string | null>(null);
+  const [gameToView, setGameToView] = useState<Game | null>(null);
 
   useEffect(() => {
     loadGames();
@@ -35,9 +53,14 @@ export default function Home() {
   };
 
   const handleDeleteGame = (id: string) => {
-    if (confirm('Êtes-vous sûr de vouloir supprimer cette partie ?')) {
-      deleteGame(id);
+    setGameToDelete(id);
+  };
+
+  const confirmDeleteGame = () => {
+    if (gameToDelete) {
+      deleteGame(gameToDelete);
       loadGames();
+      setGameToDelete(null);
     }
   };
 
@@ -67,18 +90,16 @@ export default function Home() {
     };
 
     return (
-      <Card key={game.id} className="hover:shadow-md transition-shadow">
+      <Card
+        key={game.id}
+        className={`hover:shadow-md transition-shadow ${game.status === 'completed' ? 'cursor-pointer' : ''}`}
+        onClick={() => game.status === 'completed' && setGameToView(game)}
+      >
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <CardTitle className="text-lg flex items-center gap-2">
                 {getGameName(game.type)}
-                {game.status === 'completed' && game.winner && (
-                  <Badge variant="secondary" className="ml-2">
-                    <Trophy className="w-3 h-3 mr-1" />
-                    {game.players.find((p) => p.id === game.winner)?.name}
-                  </Badge>
-                )}
               </CardTitle>
               <CardDescription className="mt-1">
                 {playerNames}
@@ -87,11 +108,14 @@ export default function Home() {
             <Button
               variant="outline"
               size="icon"
-              tabIndex={0}
-              onClick={() => handleDeleteGame(game.id)}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDeleteGame(game.id);
+              }}
               className="text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full border-destructive/30"
+              aria-label="Supprimer la partie"
             >
-              <Trash2 className="h-4 w-4" />
+              <Trash2 className="h-4 w-4" aria-hidden="true" />
             </Button>
           </div>
         </CardHeader>
@@ -118,13 +142,14 @@ export default function Home() {
               </div>
             )}
             {game.status === 'completed' && game.winner && (
-              <div className="mt-4 p-3 bg-primary/10 rounded-lg">
-                <p className="text-sm text-center">
-                  <span className="font-semibold">
-                    {game.players.find((p) => p.id === game.winner)?.name}
-                  </span>{' '}
-                  remporte la partie avec {totals[game.winner]} points
-                </p>
+              <div className="mt-4 p-3 bg-yellow-500/10 border-2 border-yellow-500 rounded-lg flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Trophy className="w-5 h-5 text-yellow-500" aria-hidden="true" />
+                  <span className="font-semibold text-base">
+                    1. {game.players.find((p) => p.id === game.winner)?.name}
+                  </span>
+                </div>
+                <span className="font-semibold text-base">{totals[game.winner]} pts</span>
               </div>
             )}
           </div>
@@ -135,22 +160,30 @@ export default function Home() {
 
   return (
     <div className="bg-background flex flex-col" style={{ height: '100dvh' }}>
+      {/* Lien d'évitement */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md"
+      >
+        Aller au contenu principal
+      </a>
+
       {/* Header */}
-      <div className="container max-w-2xl mx-auto px-4 flex items-start justify-between safe-top pt-4 pb-4 shrink-0">
-        <div>
-          <h1 className="text-4xl font-bold tracking-tight mb-2">
+      <header className="container max-w-2xl mx-auto px-4 safe-top pt-8 pb-4 shrink-0">
+        <div className="flex items-center justify-between mb-2">
+          <h1 className="text-4xl font-bold tracking-tight leading-none">
             Score Mate
           </h1>
-          <p className="text-muted-foreground">
-            Les scores, sans prise de tête
-          </p>
+          <ThemeToggle />
         </div>
-        <ThemeToggle />
-      </div>
+        <p className="text-muted-foreground">
+          Les scores, sans prise de tête
+        </p>
+      </header>
 
       {/* Contenu principal scrollable */}
-      <div className="flex-1 overflow-y-auto min-h-0">
-        <div className="container max-w-2xl mx-auto px-4 h-full flex flex-col pb-4">
+      <main id="main-content" className="flex-1 overflow-y-auto min-h-0">
+        <div className={`container max-w-2xl mx-auto px-4 h-full flex flex-col ${activeGames.length === 0 && completedGames.length === 0 ? 'pb-[120px]' : 'pb-4'} md:pb-4`}>
           <div className={`flex flex-col gap-6 py-4 ${activeGames.length === 0 && completedGames.length === 0 ? 'flex-1 justify-center' : ''}`}>
           {/* Partie en cours */}
           {activeGames.length > 0 && (
@@ -175,16 +208,17 @@ export default function Home() {
             <div className="space-y-3">
               <button
                 type="button"
-                tabIndex={0}
                 onClick={() => setShowCompleted(!showCompleted)}
                 className="w-full text-left"
+                aria-expanded={showCompleted}
+                aria-label={showCompleted ? "Masquer les parties terminées" : "Afficher les parties terminées"}
               >
                 <h2 className="text-xl font-semibold flex items-center gap-2">
                   Parties terminées ({completedGames.length})
                   {showCompleted ? (
-                    <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                    <ChevronDown className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
                   ) : (
-                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                    <ChevronRight className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
                   )}
                 </h2>
               </button>
@@ -204,42 +238,112 @@ export default function Home() {
           )}
           </div>
         </div>
-      </div>
+      </main>
 
       {/* Bouton nouvelle partie ou continuer - fixe en bas */}
-      <div className="fixed-bottom-button">
-        <div className="max-w-2xl mx-auto">
+      <footer className="fixed-bottom-button">
+        <div className="w-full md:max-w-2xl mx-auto flex justify-center">
           {activeGames.length > 0 ? (
             <Button
               type="button"
               size="lg"
-              tabIndex={0}
               onClick={() => handlePlayGame(activeGames[0].id)}
-              className="w-full rounded-full gap-2 h-14 text-lg font-semibold"
+              className="w-full md:w-auto md:min-w-[320px] rounded-full gap-2 h-14 text-lg font-semibold"
             >
-              <Play className="w-6 h-6" />
+              <Play className="w-6 h-6" aria-hidden="true" />
               Continuer la partie
             </Button>
           ) : (
             <Button
               type="button"
               size="lg"
-              tabIndex={0}
               onClick={() => router.push('/new-game')}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  router.push('/new-game');
-                }
-              }}
-              className="w-full rounded-full gap-2 h-14 text-lg font-semibold"
+              className="w-full md:w-auto md:min-w-[320px] rounded-full gap-2 h-14 text-lg font-semibold"
             >
-              <Plus className="w-6 h-6" />
+              <Plus className="w-6 h-6" aria-hidden="true" />
               Nouvelle partie
             </Button>
           )}
         </div>
-      </div>
+      </footer>
+
+      {/* Modal de confirmation de suppression */}
+      <AlertDialog open={gameToDelete !== null} onOpenChange={(open) => !open && setGameToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer la partie</AlertDialogTitle>
+            <AlertDialogDescription>
+              Êtes-vous sûr de vouloir supprimer cette partie ? Cette action est irréversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteGame} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Modal de classement d'une partie terminée */}
+      <Dialog open={gameToView !== null} onOpenChange={(open) => !open && setGameToView(null)}>
+        <DialogContent onOpenAutoFocus={(e) => e.preventDefault()}>
+          <DialogHeader>
+            <DialogTitle className="text-center text-2xl">
+              <Trophy className="w-12 h-12 mx-auto mb-4 text-yellow-500" aria-hidden="true" />
+              Classement final
+            </DialogTitle>
+          </DialogHeader>
+
+          {gameToView && (
+            <>
+              {/* Informations de la partie */}
+              <div className="text-center space-y-1 mb-4">
+                <p className="text-lg font-semibold">{getGameName(gameToView.type)}</p>
+                <p className="text-sm text-muted-foreground">
+                  {gameToView.players.map((p) => p.name).join(', ')}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {gameToView.rounds.length} {gameToView.rounds.length > 1 ? 'manches jouées' : 'manche jouée'}
+                </p>
+              </div>
+
+              {/* Classement final */}
+              <div className="space-y-2">
+                {getLeaderboard(gameToView).map((player, index) => {
+                  const totals = calculateTotals(gameToView);
+                  return (
+                    <div
+                      key={player.playerId}
+                      className={`flex items-center justify-between p-3 rounded-lg ${
+                        index === 0
+                          ? 'bg-yellow-500/20 border-2 border-yellow-500'
+                          : 'bg-card border border-border'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        {index === 0 && (
+                          <Trophy className="w-5 h-5 text-yellow-500" aria-hidden="true" />
+                        )}
+                        <span
+                          className={
+                            index === 0 ? 'font-bold' : 'font-medium'
+                          }
+                        >
+                          {player.rank}. {player.playerName}
+                        </span>
+                      </div>
+                      <span className="font-semibold">
+                        {player.totalScore} pts
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

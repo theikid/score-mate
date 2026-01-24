@@ -90,7 +90,7 @@
 .dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
+  --card: oklch(0.22 0 0);
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
@@ -129,6 +129,32 @@
     @apply bg-background text-foreground;
   }
 
+  /* Classe pour lecteurs d'écran uniquement (RGAA) */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
+  /* Rendre visible au focus (pour les liens d'évitement) */
+  .sr-only:focus-visible,
+  .focus\:not-sr-only:focus-visible {
+    position: static;
+    width: auto;
+    height: auto;
+    padding: inherit;
+    margin: inherit;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+  }
+
   /* Focus visible amélioré pour une meilleure visibilité au clavier */
   button:focus-visible,
   input:focus-visible,
@@ -139,8 +165,22 @@
 }
 
 @layer components {
+  .header-blur {
+    background-color: oklch(var(--background) / 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  .dark .header-blur {
+    background-color: oklch(var(--background) / 0.85);
+  }
+
   .fixed-bottom-button {
-    @apply fixed bottom-0 left-0 right-0 bg-muted border-t border-border z-50;
+    @apply fixed bottom-0 left-0 right-0 border-t border-border z-50;
+    background-color: oklch(0.18 0 0 / 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding-top: 24px;
     /* Utiliser max() pour garantir un padding minimum de 24px + safe area iOS */
     padding-bottom: max(24px, calc(var(--safe-area-inset-bottom) + 6px));
     border-top-left-radius: 1.5rem;
@@ -153,19 +193,15 @@
   .fixed-bottom-button::before {
     content: '';
     position: absolute;
-    top: -80px;
+    top: -60px;
     left: 0;
     right: 0;
-    height: 104px;
+    height: 60px;
     background: linear-gradient(to bottom,
-      rgba(0, 0, 0, 0) 0%,
-      rgba(0, 0, 0, 0.15) 40%,
-      rgba(0, 0, 0, 0.35) 70%,
-      rgba(0, 0, 0, 0.5) 100%
+      transparent 0%,
+      hsl(var(--background) / 0.8) 100%
     );
     pointer-events: none;
-    border-bottom-left-radius: 1.5rem;
-    border-bottom-right-radius: 1.5rem;
   }
 
   .fixed-bottom-button-content {
@@ -174,14 +210,21 @@
   }
 
   .fixed-bottom-button > div {
-    padding: 0 32px;
+    padding: 0 20px;
   }
 
   @media (min-width: 768px) {
     .fixed-bottom-button {
       @apply static border-t-0 shadow-none;
-      padding: 0;
+      background-color: transparent !important;
+      backdrop-filter: none !important;
+      padding: 24px 0 !important;
       margin-top: 48px;
+      max-height: none;
+    }
+
+    .fixed-bottom-button::before {
+      display: none;
     }
 
     .fixed-bottom-button > div {
@@ -196,13 +239,13 @@
 
   /* Classes pour les headers avec safe area minimum */
   .safe-top-header {
-    /* Utilise max() pour garantir un minimum de 1rem (16px) + safe area iOS */
-    padding-top: max(1rem, var(--safe-area-inset-top));
+    /* Utilise max() pour garantir un minimum de 1.5rem (24px) + safe area iOS */
+    padding-top: max(1.5rem, var(--safe-area-inset-top));
   }
 
   .safe-top-header-lg {
-    /* Utilise max() pour garantir un minimum de 2rem (32px) + safe area iOS */
-    padding-top: max(2rem, var(--safe-area-inset-top));
+    /* Utilise max() pour garantir un minimum de 2.5rem (40px) + safe area iOS */
+    padding-top: max(2.5rem, var(--safe-area-inset-top));
   }
 
   /* Classe pour le body avec safe areas sur tous les côtés */

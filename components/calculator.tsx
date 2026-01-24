@@ -173,25 +173,44 @@ export function Calculator({ isOpen, onClose, onValidate, playerName, initialVal
     }
   };
 
+  const getButtonAriaLabel = (button: { value: string; type: string }) => {
+    switch (button.value) {
+      case '×':
+        return 'Multiplication';
+      case '-':
+        return 'Soustraction';
+      case '+':
+        return 'Addition';
+      case '=':
+        return 'Égal';
+      case 'C':
+        return 'Effacer tout';
+      case '⌫':
+        return 'Effacer';
+      default:
+        return button.value;
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 bg-background flex flex-col safe-area-full">
       {/* Header */}
-      <div className="px-4 py-2 border-b border-border flex items-center justify-between">
-        <div className="flex-1" />
+      <div className="px-4 safe-top pt-8 pb-4 border-b border-border flex items-center justify-between">
+        <div className="flex-shrink-0 w-10" />
         <h2 className="text-lg font-semibold flex-1 text-center">
-          {playerName ? `Score de ${playerName}` : 'Calculatrice'}
+          Calcul du score
         </h2>
-        <div className="flex-1 flex justify-end">
+        <div className="flex-shrink-0">
           <Button
-            variant="ghost"
+            variant="outline"
             size="icon"
             onClick={onClose}
-            className="h-16 w-16"
+            className="rounded-full"
             aria-label="Fermer"
           >
-            <X className="h-12 w-12 stroke-[3]" />
+            <X className="h-5 w-5" aria-hidden="true" />
           </Button>
         </div>
       </div>
@@ -203,10 +222,15 @@ export function Calculator({ isOpen, onClose, onValidate, playerName, initialVal
           <div className="text-right text-base font-mono text-muted-foreground mb-1 break-all min-h-[24px]">
             {previousExpression || '\u00A0'}
           </div>
-          <div className="text-right text-5xl font-mono font-bold break-all tracking-tight">
+          <div
+            className="text-right text-5xl font-mono font-bold break-all tracking-tight"
+            aria-live="polite"
+            aria-atomic="true"
+            aria-describedby={error ? "calculator-error" : undefined}
+          >
             {display}
           </div>
-          <div className="text-destructive text-xs mt-1 text-right min-h-[16px]">
+          <div id="calculator-error" className="text-destructive text-xs mt-1 text-right min-h-[16px]" role="alert" aria-live="assertive">
             {error && <span className="animate-in fade-in">{error}</span>}
           </div>
         </div>
@@ -224,6 +248,7 @@ export function Calculator({ isOpen, onClose, onValidate, playerName, initialVal
                 key={index}
                 variant={getButtonVariant(button.type)}
                 onClick={() => handleButtonClick(button)}
+                aria-label={getButtonAriaLabel(button)}
                 className={`h-[72px] w-full rounded-full text-3xl font-semibold transition-all active:scale-90 shadow-md ${
                   isNumber ? 'bg-card hover:bg-accent' : ''
                 } ${

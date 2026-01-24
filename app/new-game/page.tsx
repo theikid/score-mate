@@ -115,26 +115,34 @@ export default function NewGame() {
 
   return (
     <div className="bg-background overflow-hidden flex flex-col" style={{ height: '100dvh' }}>
+      {/* Lien d'évitement */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md"
+      >
+        Aller au contenu principal
+      </a>
+
       <div className="container max-w-2xl mx-auto px-4 pb-24 md:pb-4 flex-1 flex flex-col overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center gap-3 safe-top pt-4 pb-6 shrink-0">
+        <header className="flex items-center gap-3 safe-top pt-8 pb-10 shrink-0">
           <Button
             variant="ghost"
             size="icon"
-            tabIndex={0}
             onClick={() => router.push('/')}
             className="rounded-full"
+            aria-label="Retour à l'accueil"
           >
-            <ArrowLeft className="h-6 w-6" />
+            <ArrowLeft className="h-6 w-6" aria-hidden="true" />
           </Button>
           <div className="flex-1 text-center">
             <h1 className="text-3xl font-bold">Nouvelle partie</h1>
           </div>
           <ThemeToggle />
-        </div>
+        </header>
 
         {/* Container pour stepper + card */}
-        <div className="flex-1 flex flex-col gap-6 pb-6">
+        <main id="main-content" className="flex-1 flex flex-col gap-10 pb-6">
           {/* Stepper */}
           <div className="flex items-start">
             {steps.map((s, index) => (
@@ -145,7 +153,7 @@ export default function NewGame() {
                       step === s.number
                         ? 'bg-primary text-primary-foreground'
                         : step > s.number
-                        ? 'bg-primary/20 text-primary'
+                        ? 'border-2 border-primary text-primary'
                         : 'bg-muted text-muted-foreground'
                     }`}
                   >
@@ -184,59 +192,39 @@ export default function NewGame() {
               <CardContent className="space-y-3">
                 <button
                   type="button"
-                  tabIndex={0}
                   onClick={() => {
                     setGameType('skyjo');
                     setStep(2);
                   }}
-                  className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
-                    gameType === 'skyjo'
-                      ? 'border-primary bg-primary/5'
-                      : 'border-border hover:border-primary/50'
-                  }`}
+                  className="w-full p-4 rounded-lg border-2 border-border hover:border-primary/50 active:bg-primary/10 transition-all text-left"
                 >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="font-semibold text-lg">Skyjo</h3>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Le score le plus bas gagne
-                      </p>
-                      <p className="text-sm text-muted-foreground mt-2">
-                        Cible : 100 pts
-                      </p>
-                    </div>
-                    {gameType === 'skyjo' && (
-                      <Badge variant="default">Sélectionné</Badge>
-                    )}
+                  <div>
+                    <h3 className="font-semibold text-lg">Skyjo</h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Le score le plus bas gagne
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Cible : 100 pts
+                    </p>
                   </div>
                 </button>
 
                 <button
                   type="button"
-                  tabIndex={0}
                   onClick={() => {
                     setGameType('flip7');
                     setStep(2);
                   }}
-                  className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
-                    gameType === 'flip7'
-                      ? 'border-primary bg-primary/5'
-                      : 'border-border hover:border-primary/50'
-                  }`}
+                  className="w-full p-4 rounded-lg border-2 border-border hover:border-primary/50 active:bg-primary/10 transition-all text-left"
                 >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="font-semibold text-lg">Flip 7</h3>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Le score le plus haut gagne
-                      </p>
-                      <p className="text-sm text-muted-foreground mt-2">
-                        Cible : 200 pts
-                      </p>
-                    </div>
-                    {gameType === 'flip7' && (
-                      <Badge variant="default">Sélectionné</Badge>
-                    )}
+                  <div>
+                    <h3 className="font-semibold text-lg">Flip 7</h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Le score le plus haut gagne
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Cible : 200 pts
+                    </p>
                   </div>
                 </button>
               </CardContent>
@@ -267,14 +255,14 @@ export default function NewGame() {
                         key={name}
                         ref={index === 0 ? firstPlayerButtonRef : null}
                         type="button"
-                        tabIndex={0}
                         variant={isSelected ? 'default' : 'outline'}
                         onClick={() => togglePresetPlayer(name)}
                         className="h-12 relative focus-visible:ring-4 focus-visible:ring-primary/30"
                         disabled={!isSelected && selectedPlayers.length >= 6}
+                        aria-pressed={isSelected}
                       >
                         {isSelected && (
-                          <Check className="w-4 h-4 mr-2" />
+                          <Check className="w-4 h-4 mr-2" aria-hidden="true" />
                         )}
                         {name}
                       </Button>
@@ -284,11 +272,12 @@ export default function NewGame() {
 
                 {/* Ajout joueur personnalisé */}
                 <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">
+                  <label htmlFor="custom-player-name" className="text-sm text-muted-foreground">
                     Ou ajoutez un autre joueur :
-                  </p>
+                  </label>
                   <div className="flex gap-2">
                     <Input
+                      id="custom-player-name"
                       placeholder="Nom du joueur"
                       value={customPlayerName}
                       onChange={(e) => setCustomPlayerName(e.target.value)}
@@ -302,14 +291,13 @@ export default function NewGame() {
                     />
                     <Button
                       type="button"
-                      tabIndex={0}
                       onClick={addCustomPlayer}
                       disabled={
                         !customPlayerName.trim() || selectedPlayers.length >= 6
                       }
                       className="gap-1"
                     >
-                      <Plus className="w-4 h-4" />
+                      <Plus className="w-4 h-4" aria-hidden="true" />
                       Ajouter
                     </Button>
                   </div>
@@ -321,21 +309,16 @@ export default function NewGame() {
                     <p className="text-sm font-medium">Joueurs sélectionnés :</p>
                     <div className="flex flex-wrap gap-2">
                       {selectedPlayers.map((name) => (
-                        <Badge
+                        <button
                           key={name}
-                          variant="secondary"
-                          className="px-3 py-2 text-sm flex items-center gap-2"
+                          type="button"
+                          onClick={() => removePlayer(name)}
+                          className="px-3 py-2 text-sm flex items-center gap-2 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 active:bg-secondary/70 transition-all"
+                          aria-label={`Retirer ${name}`}
                         >
                           {name}
-                          <button
-                            type="button"
-                            tabIndex={0}
-                            onClick={() => removePlayer(name)}
-                            className="hover:text-destructive"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </button>
-                        </Badge>
+                          <Trash2 className="w-3 h-3" aria-hidden="true" />
+                        </button>
                       ))}
                     </div>
                   </div>
@@ -360,54 +343,56 @@ export default function NewGame() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
+                <label htmlFor="target-score" className="sr-only">
+                  Score cible
+                </label>
                 <Input
+                  id="target-score"
                   type="number"
                   value={customTargetScore}
                   onChange={(e) => setCustomTargetScore(e.target.value)}
                   min="1"
                   className="text-lg"
+                  aria-label="Score cible"
                 />
               </CardContent>
             </Card>
           )}
 
-        </div>
+        </main>
       </div>
 
       {/* Boutons navigation */}
       {step > 1 && (
-        <div className="fixed-bottom-button">
-          <div className="max-w-2xl mx-auto">
+        <footer className="fixed-bottom-button">
+          <div className="w-full md:max-w-2xl mx-auto">
             <div className="flex gap-3">
               <Button
                 type="button"
                 variant="outline"
                 size="lg"
-                tabIndex={0}
                 onClick={handlePrevious}
-                className="flex-1 rounded-full gap-2 h-14 text-lg font-semibold"
+                className="rounded-full gap-2 h-14 text-lg font-semibold"
               >
-                <ChevronLeft className="w-6 h-6" />
+                <ChevronLeft className="w-6 h-6" aria-hidden="true" />
                 Précédent
               </Button>
               {step === 2 && (
                 <Button
                   type="button"
                   size="lg"
-                  tabIndex={0}
                   onClick={handleNext}
                   className="flex-1 rounded-full gap-2 h-14 text-lg font-semibold"
                   disabled={selectedPlayers.length < 2}
                 >
                   Suivant
-                  <ChevronRight className="w-6 h-6" />
+                  <ChevronRight className="w-6 h-6" aria-hidden="true" />
                 </Button>
               )}
               {step === 3 && (
                 <Button
                   type="button"
                   size="lg"
-                  tabIndex={0}
                   onClick={handleStartGame}
                   className="flex-1 rounded-full gap-2 h-14 text-lg font-semibold"
                 >
@@ -416,7 +401,7 @@ export default function NewGame() {
               )}
             </div>
           </div>
-        </div>
+        </footer>
       )}
     </div>
   );
