@@ -127,26 +127,44 @@ export default function GamePage() {
 
   return (
     <div className="bg-background flex flex-col" style={{ height: '100dvh' }}>
-      {/* Header Score Mate - FIXE EN HAUT */}
-      <div className="container max-w-4xl mx-auto px-4 shrink-0">
-        <div className="flex items-start justify-between safe-top-header-lg pb-4">
-          <Button variant="ghost" size="icon" tabIndex={0} onClick={handleCloseGame} className="rounded-full -ml-2">
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div className="flex-1 text-center">
-            <h1 className="text-3xl font-bold tracking-tight">
-              Score Mate
-            </h1>
-          </div>
-          <ThemeToggle />
-        </div>
-      </div>
+      {/* Lien d'évitement */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md"
+      >
+        Aller au contenu principal
+      </a>
 
       {/* Contenu scrollable */}
-      <div className={`container max-w-4xl mx-auto px-4 flex-1 flex flex-col overflow-y-auto ${game.status === 'completed' ? 'pb-4' : isScoreEntryExpanded ? 'pb-[350px]' : 'pb-20'} md:pb-4`}>
+      <div className={`flex-1 flex flex-col overflow-y-auto min-h-0 ${game.status === 'completed' ? 'pb-4' : isScoreEntryExpanded ? 'pb-[300px]' : 'pb-6'} md:pb-4`}>
+        {/* Header Score Mate - STICKY EN HAUT */}
+        <header
+          className="sticky top-0 z-10 bg-background"
+          style={{
+            opacity: 0.95,
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)'
+          }}
+        >
+          <div className="container max-w-4xl mx-auto px-4">
+            <div className="flex items-start justify-between safe-top pt-8 pb-4 border-b border-border">
+              <Button variant="ghost" size="icon" onClick={handleCloseGame} className="rounded-full -ml-2" aria-label="Retour à l'accueil">
+                <ArrowLeft className="h-5 w-5" aria-hidden="true" />
+              </Button>
+              <div className="flex-1 text-center">
+                <h1 className="text-3xl font-bold tracking-tight">
+                  Score Mate
+                </h1>
+              </div>
+              <ThemeToggle />
+            </div>
+          </div>
+        </header>
+
+        <main id="main-content" className="container max-w-4xl mx-auto px-4">
         <div className="flex flex-col gap-6">
           {/* Info de la partie */}
-          <div className="border-t border-border pt-4 pb-4">
+          <div className="pt-4">
             <div className="text-center space-y-2">
               <h2 className="text-2xl font-bold">{getGameName(game.type)}</h2>
               <p className="text-sm text-muted-foreground">
@@ -167,25 +185,27 @@ export default function GamePage() {
                   {leaderboard.map((entry, index) => {
                     const player = game.players.find((p) => p.id === entry.playerId);
                     if (!player) return null;
+                    const isWinner = game.status === 'completed' && game.winner === player.id;
                     return (
                       <div
                         key={player.id}
-                        className="flex items-center justify-between p-3 rounded-lg bg-muted/30"
+                        className={`flex items-center justify-between py-2 px-3 rounded-lg ${isWinner ? 'bg-yellow-500/10' : 'bg-muted/30'}`}
                       >
                         <div className="flex items-center gap-3">
                           <Badge variant={index === 0 ? 'default' : 'secondary'} className="text-xs min-w-[32px] justify-center">
                             {index + 1}
                           </Badge>
-                          <span className="font-medium">{player.name}</span>
+                          <span className={`font-medium ${isWinner ? 'text-yellow-500' : ''}`}>{player.name}</span>
+                          {isWinner && <Trophy className="w-4 h-4 text-yellow-500" aria-hidden="true" />}
                         </div>
-                        <span className="font-semibold text-lg">{entry.totalScore} pts</span>
+                        <span className={`font-semibold text-lg ${isWinner ? 'text-yellow-500' : ''}`}>{entry.totalScore} pts</span>
                       </div>
                     );
                   })}
                 </div>
 
                 {/* Historique */}
-                <div className="pt-4">
+                <div className="pt-2">
                   <h4 className="text-sm font-semibold text-muted-foreground mb-3">Détail des manches</h4>
 
                   {/* Historique en colonnes */}
@@ -221,37 +241,41 @@ export default function GamePage() {
           )}
 
         </div>
+        </main>
       </div>
 
       {/* Saisie nouvelle manche - fixe en bas sur mobile */}
       {game.status === 'in-progress' && (
-        <div className={`fixed-bottom-button ${!isScoreEntryExpanded ? '!py-4' : ''}`}>
+        <footer className={`fixed-bottom-button ${!isScoreEntryExpanded ? '!py-6' : ''}`}>
           <div className="fixed-bottom-button-content">
             <div className="container max-w-4xl mx-auto">
               <div className="space-y-6">
               <button
                 onClick={() => setIsScoreEntryExpanded(!isScoreEntryExpanded)}
                 className="flex items-center justify-between w-full text-left"
+                aria-expanded={isScoreEntryExpanded}
+                aria-label={isScoreEntryExpanded ? "Réduire la saisie des scores" : "Développer la saisie des scores"}
               >
                 <h3 className="text-xl font-bold">
                   Manche {game.rounds.length + 1} (en cours)
                 </h3>
                 {isScoreEntryExpanded ? (
-                  <ChevronDown className="h-6 w-6" />
+                  <ChevronDown className="h-6 w-6" aria-hidden="true" />
                 ) : (
-                  <ChevronUp className="h-6 w-6" />
+                  <ChevronUp className="h-6 w-6" aria-hidden="true" />
                 )}
               </button>
               {isScoreEntryExpanded && (
                 <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
                   {game.players.map((player) => (
                     <div key={player.id} className="flex items-center gap-3">
-                      <label className="w-32 text-sm font-medium">
+                      <label htmlFor={`score-${player.id}`} className="w-32 text-sm font-medium">
                         {player.name}
                       </label>
                       <div className="flex gap-2 flex-1">
                         <div className="relative flex-1">
                           <Input
+                            id={`score-${player.id}`}
                             type="number"
                             placeholder="Score"
                             value={roundScores[player.id] || ''}
@@ -269,7 +293,7 @@ export default function GamePage() {
                               aria-label={`Effacer le score de ${player.name}`}
                               className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
                             >
-                              <X className="h-4 w-4" />
+                              <X className="h-4 w-4" aria-hidden="true" />
                             </Button>
                           )}
                         </div>
@@ -279,7 +303,7 @@ export default function GamePage() {
                           onClick={() => setCalculatorOpen(player.id)}
                           aria-label={`Ouvrir la calculatrice pour ${player.name}`}
                         >
-                          <Calculator className="h-4 w-4" />
+                          <Calculator className="h-4 w-4" aria-hidden="true" />
                         </Button>
                       </div>
                     </div>
@@ -289,7 +313,7 @@ export default function GamePage() {
                     className="w-full mt-4 gap-2 h-14 text-lg font-semibold rounded-full"
                     size="lg"
                   >
-                    <Plus className="w-6 h-6" />
+                    <Plus className="w-6 h-6" aria-hidden="true" />
                     Valider la manche
                   </Button>
                 </div>
@@ -297,7 +321,7 @@ export default function GamePage() {
               </div>
             </div>
           </div>
-        </div>
+        </footer>
       )}
 
       {/* Modal de victoire */}
@@ -305,7 +329,7 @@ export default function GamePage() {
         <DialogContent onOpenAutoFocus={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle className="text-center text-2xl">
-              <Trophy className="w-12 h-12 mx-auto mb-4 text-yellow-500" />
+              <Trophy className="w-12 h-12 mx-auto mb-4 text-yellow-500" aria-hidden="true" />
               {game.winner && (
                 <>
                   {game.players.find((p) => p.id === game.winner)?.name} remporte la partie
@@ -330,7 +354,7 @@ export default function GamePage() {
               >
                 <div className="flex items-center gap-3">
                   {index === 0 && (
-                    <Trophy className="w-5 h-5 text-yellow-500" />
+                    <Trophy className="w-5 h-5 text-yellow-500" aria-hidden="true" />
                   )}
                   <span
                     className={

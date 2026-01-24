@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { PWAInstaller } from "./pwa-installer";
+import { Agentation } from "agentation";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -72,6 +73,7 @@ export default function RootLayout({
       >
         <PWAInstaller />
         {children}
+        {process.env.NODE_ENV === "development" && <Agentation />}
       </body>
     </html>
   );

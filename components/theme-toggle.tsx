@@ -11,7 +11,7 @@ export function ThemeToggle() {
   if (!mounted) {
     return (
       <Button variant="outline" size="icon" aria-label="Toggle theme" disabled className="rounded-full">
-        <Sun className="h-5 w-5" />
+        <Sun className="h-5 w-5" aria-hidden="true" />
       </Button>
     );
   }
@@ -33,9 +33,9 @@ export function ThemeToggle() {
       className="rounded-full"
     >
       {isDark ? (
-        <Sun className="h-5 w-5" />
+        <Sun className="h-5 w-5" aria-hidden="true" />
       ) : (
-        <Moon className="h-5 w-5" />
+        <Moon className="h-5 w-5" aria-hidden="true" />
       )}
     </Button>
   );
