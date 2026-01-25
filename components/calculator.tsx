@@ -195,18 +195,41 @@ export function Calculator({ isOpen, onClose, onValidate, playerName, initialVal
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-background flex flex-col safe-area-full">
+    <div
+      className="fixed inset-0 z-[60] bg-background flex flex-col"
+      style={{ height: '100dvh' }}
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
+      onMouseDown={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
+      onTouchStart={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
+      onPointerDown={(e) => {
+        e.stopPropagation();
+      }}
+    >
       {/* Header */}
-      <div className="px-4 safe-top pt-8 pb-4 border-b border-border flex items-center justify-between">
+      <div className="px-4 safe-top-header pb-4 border-b border-border flex items-center justify-between shrink-0">
         <div className="flex-shrink-0 w-10" />
-        <h2 className="text-lg font-semibold flex-1 text-center">
+        <h2 className="text-2xl font-bold flex-1 text-center">
           Calcul du score
         </h2>
         <div className="flex-shrink-0">
           <Button
+            type="button"
             variant="outline"
             size="icon"
-            onClick={onClose}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onClose();
+            }}
             className="rounded-full"
             aria-label="Fermer"
           >
@@ -216,10 +239,10 @@ export function Calculator({ isOpen, onClose, onValidate, playerName, initialVal
       </div>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col px-4 py-2 max-w-md mx-auto w-full justify-center gap-3">
+      <div className="flex-1 flex flex-col px-4 max-w-md mx-auto w-full justify-center gap-6 pt-4 pb-8">
         {/* Display */}
-        <div className="py-4 h-[140px] flex flex-col justify-end">
-          <div className="text-right text-base font-mono text-muted-foreground mb-1 break-all min-h-[24px]">
+        <div className="flex flex-col justify-end">
+          <div className="text-right text-sm font-mono text-muted-foreground mb-1 break-all">
             {previousExpression || '\u00A0'}
           </div>
           <div
@@ -246,8 +269,13 @@ export function Calculator({ isOpen, onClose, onValidate, playerName, initialVal
             return (
               <Button
                 key={index}
+                type="button"
                 variant={getButtonVariant(button.type)}
-                onClick={() => handleButtonClick(button)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleButtonClick(button);
+                }}
                 aria-label={getButtonAriaLabel(button)}
                 className={`h-[72px] w-full rounded-full text-3xl font-semibold transition-all active:scale-90 shadow-md ${
                   isNumber ? 'bg-card hover:bg-accent' : ''
@@ -264,19 +292,20 @@ export function Calculator({ isOpen, onClose, onValidate, playerName, initialVal
             );
           })}
         </div>
-      </div>
 
-      {/* Footer avec bouton Valider */}
-      <div className="px-4 py-3 border-t border-border">
-        <div className="max-w-md mx-auto w-full">
-          <Button
-            size="lg"
-            onClick={handleValidate}
-            className="w-full h-14 text-xl font-semibold rounded-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg"
-          >
-            Valider
-          </Button>
-        </div>
+        {/* Bouton Valider */}
+        <Button
+          type="button"
+          size="lg"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleValidate();
+          }}
+          className="w-full h-14 text-xl font-semibold rounded-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg mt-2"
+        >
+          Valider
+        </Button>
       </div>
     </div>
   );

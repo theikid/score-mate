@@ -123,15 +123,15 @@ export default function NewGame() {
         Aller au contenu principal
       </a>
 
-      <div className="container max-w-2xl mx-auto px-4 pb-24 flex-1 flex flex-col overflow-y-auto">
+      <div className="container max-w-2xl mx-auto px-4 pb-6 flex-1 flex flex-col overflow-y-auto">
         {/* Header */}
-        <header className="flex items-center gap-3 safe-top pt-8 pb-10 shrink-0">
+        <header className="flex items-center gap-3 safe-top-header pb-10 shrink-0">
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => router.push('/')}
+            onClick={() => step === 1 ? router.push('/') : handlePrevious()}
             className="rounded-full"
-            aria-label="Retour à l'accueil"
+            aria-label={step === 1 ? "Retour à l'accueil" : "Précédent"}
           >
             <ArrowLeft className="h-6 w-6" aria-hidden="true" />
           </Button>
@@ -233,176 +233,155 @@ export default function NewGame() {
 
           {/* Étape 2 : Joueurs */}
           {step === 2 && (
-            <Card className="border-border/50">
-              <CardHeader>
-                <CardTitle>
-                  <div className="flex items-center gap-2">
-                    <Users className="w-5 h-5" />
-                    Joueurs ({selectedPlayers.length}/6)
-                  </div>
-                </CardTitle>
-                <CardDescription>
-                  Sélectionnez rapidement les joueurs ou ajoutez un nom personnalisé
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Boutons joueurs prédéfinis */}
-                <div className="grid grid-cols-2 gap-2">
-                  {PRESET_PLAYERS.map((name, index) => {
-                    const isSelected = selectedPlayers.includes(name);
-                    return (
-                      <Button
-                        key={name}
-                        ref={index === 0 ? firstPlayerButtonRef : null}
-                        type="button"
-                        variant={isSelected ? 'default' : 'outline'}
-                        onClick={() => togglePresetPlayer(name)}
-                        className="h-12 relative focus-visible:ring-4 focus-visible:ring-primary/30"
-                        disabled={!isSelected && selectedPlayers.length >= 6}
-                        aria-pressed={isSelected}
-                      >
-                        {isSelected && (
-                          <Check className="w-4 h-4 mr-2" aria-hidden="true" />
-                        )}
-                        {name}
-                      </Button>
-                    );
-                  })}
-                </div>
-
-                {/* Ajout joueur personnalisé */}
-                <div className="space-y-2">
-                  <label htmlFor="custom-player-name" className="text-sm text-muted-foreground">
-                    Ou ajoutez un autre joueur :
-                  </label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="custom-player-name"
-                      placeholder="Nom du joueur"
-                      value={customPlayerName}
-                      onChange={(e) => setCustomPlayerName(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && customPlayerName.trim() && selectedPlayers.length < 6) {
-                          addCustomPlayer();
-                        }
-                      }}
-                      disabled={selectedPlayers.length >= 6}
-                      className="flex-1"
-                    />
-                    <Button
-                      type="button"
-                      onClick={addCustomPlayer}
-                      disabled={
-                        !customPlayerName.trim() || selectedPlayers.length >= 6
-                      }
-                      className="gap-1"
-                    >
-                      <Plus className="w-4 h-4" aria-hidden="true" />
-                      Ajouter
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Liste des joueurs sélectionnés */}
-                {selectedPlayers.length > 0 && (
-                  <div className="space-y-2 pt-2">
-                    <p className="text-sm font-medium">Joueurs sélectionnés :</p>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedPlayers.map((name) => (
-                        <button
+            <div className="space-y-6">
+              <Card className="border-border/50">
+                <CardHeader>
+                  <CardTitle>
+                    <div className="flex items-center gap-2">
+                      <Users className="w-5 h-5" />
+                      Joueurs ({selectedPlayers.length}/6)
+                    </div>
+                  </CardTitle>
+                  <CardDescription className="mt-2">
+                    Sélectionnez au moins 2 joueurs pour continuer
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Boutons joueurs prédéfinis */}
+                  <div className="grid grid-cols-2 gap-2">
+                    {PRESET_PLAYERS.map((name, index) => {
+                      const isSelected = selectedPlayers.includes(name);
+                      return (
+                        <Button
                           key={name}
+                          ref={index === 0 ? firstPlayerButtonRef : null}
                           type="button"
-                          onClick={() => removePlayer(name)}
-                          className="px-3 py-2 text-sm flex items-center gap-2 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 active:bg-secondary/70 transition-all"
-                          aria-label={`Retirer ${name}`}
+                          variant={isSelected ? 'default' : 'outline'}
+                          onClick={() => togglePresetPlayer(name)}
+                          className="h-12 relative focus-visible:ring-4 focus-visible:ring-primary/30"
+                          disabled={!isSelected && selectedPlayers.length >= 6}
+                          aria-pressed={isSelected}
                         >
+                          {isSelected && (
+                            <Check className="w-4 h-4 mr-2" aria-hidden="true" />
+                          )}
                           {name}
-                          <Trash2 className="w-3 h-3" aria-hidden="true" />
-                        </button>
-                      ))}
+                        </Button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Ajout joueur personnalisé */}
+                  <div className="space-y-2">
+                    <label htmlFor="custom-player-name" className="text-sm text-muted-foreground">
+                      Ou ajoutez un autre joueur :
+                    </label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="custom-player-name"
+                        placeholder="Nom du joueur"
+                        value={customPlayerName}
+                        onChange={(e) => setCustomPlayerName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && customPlayerName.trim() && selectedPlayers.length < 6) {
+                            addCustomPlayer();
+                          }
+                        }}
+                        disabled={selectedPlayers.length >= 6}
+                        className="flex-1"
+                      />
+                      <Button
+                        type="button"
+                        onClick={addCustomPlayer}
+                        disabled={
+                          !customPlayerName.trim() || selectedPlayers.length >= 6
+                        }
+                        className="gap-1"
+                      >
+                        <Plus className="w-4 h-4" aria-hidden="true" />
+                        Ajouter
+                      </Button>
                     </div>
                   </div>
-                )}
 
-                {selectedPlayers.length < 2 && (
-                  <p className="text-sm text-muted-foreground italic">
-                    Sélectionnez au moins 2 joueurs pour continuer
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-          )}
+                  {/* Liste des joueurs sélectionnés */}
+                  {selectedPlayers.length > 0 && (
+                    <div className="space-y-2 pt-2">
+                      <p className="text-sm font-medium">Joueurs sélectionnés :</p>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedPlayers.map((name) => (
+                          <button
+                            key={name}
+                            type="button"
+                            onClick={() => removePlayer(name)}
+                            className="px-3 py-2 text-sm flex items-center gap-2 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 active:bg-secondary/70 transition-all"
+                            aria-label={`Retirer ${name}`}
+                          >
+                            {name}
+                            <Trash2 className="w-3 h-3" aria-hidden="true" />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
 
-          {/* Étape 3 : Score cible */}
-          {step === 3 && (
-            <Card className="border-border/50">
-              <CardHeader>
-                <CardTitle>Score cible</CardTitle>
-                <CardDescription>
-                  Score par défaut : {gameType === 'skyjo' ? '100' : '200'} points
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <label htmlFor="target-score" className="sr-only">
-                  Score cible
-                </label>
-                <Input
-                  id="target-score"
-                  type="number"
-                  value={customTargetScore}
-                  onChange={(e) => setCustomTargetScore(e.target.value)}
-                  min="1"
-                  className="text-lg"
-                  aria-label="Score cible"
-                />
-              </CardContent>
-            </Card>
-          )}
-
-        </main>
-      </div>
-
-      {/* Boutons navigation */}
-      {step > 1 && (
-        <footer className="fixed-bottom-button">
-          <div className="w-full md:max-w-2xl mx-auto flex justify-center">
-            <div className="flex gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                size="lg"
-                onClick={handlePrevious}
-                className="rounded-full gap-2 h-14 text-lg font-semibold"
-              >
-                <ChevronLeft className="w-6 h-6" aria-hidden="true" />
-                Précédent
-              </Button>
-              {step === 2 && (
+              {/* Bouton Suivant */}
+              {selectedPlayers.length >= 2 && (
                 <Button
                   type="button"
                   size="lg"
                   onClick={handleNext}
-                  className="w-full md:w-auto md:min-w-[320px] rounded-full gap-2 h-14 text-lg font-semibold"
-                  disabled={selectedPlayers.length < 2}
+                  className="w-full rounded-full gap-2 h-14 text-lg font-semibold"
                 >
                   Suivant
                   <ChevronRight className="w-6 h-6" aria-hidden="true" />
                 </Button>
               )}
-              {step === 3 && (
-                <Button
-                  type="button"
-                  size="lg"
-                  onClick={handleStartGame}
-                  className="w-full md:w-auto md:min-w-[320px] rounded-full gap-2 h-14 text-lg font-semibold"
-                >
-                  Démarrer la partie
-                </Button>
-              )}
             </div>
-          </div>
-        </footer>
-      )}
+          )}
+
+          {/* Étape 3 : Score cible */}
+          {step === 3 && (
+            <div className="space-y-6">
+              <Card className="border-border/50">
+                <CardHeader>
+                  <CardTitle>Score cible</CardTitle>
+                  <CardDescription>
+                    Score par défaut : {gameType === 'skyjo' ? '100' : '200'} points
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <label htmlFor="target-score" className="sr-only">
+                    Score cible
+                  </label>
+                  <Input
+                    id="target-score"
+                    type="number"
+                    value={customTargetScore}
+                    onChange={(e) => setCustomTargetScore(e.target.value)}
+                    min="1"
+                    className="text-lg"
+                    aria-label="Score cible"
+                  />
+                </CardContent>
+              </Card>
+
+              {/* Bouton Démarrer la partie */}
+              <Button
+                type="button"
+                size="lg"
+                onClick={handleStartGame}
+                className="w-full rounded-full gap-2 h-14 text-lg font-semibold"
+              >
+                Démarrer la partie
+              </Button>
+            </div>
+          )}
+
+        </main>
+      </div>
     </div>
   );
 }

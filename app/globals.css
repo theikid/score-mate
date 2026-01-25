@@ -181,8 +181,7 @@
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     padding-top: 24px;
-    /* Utiliser max() pour garantir un padding minimum de 24px + safe area iOS */
-    padding-bottom: max(24px, calc(var(--safe-area-inset-bottom) + 6px));
+    padding-bottom: calc(40px + env(safe-area-inset-bottom, 0px));
     border-top-left-radius: 1.5rem;
     border-top-right-radius: 1.5rem;
     max-height: 75vh;
@@ -221,8 +220,8 @@
 
   /* Classes pour les headers avec safe area minimum */
   .safe-top-header {
-    /* Utilise max() pour garantir un minimum de 1.5rem (24px) + safe area iOS */
-    padding-top: max(1.5rem, var(--safe-area-inset-top));
+    /* Additionne 1.5rem (24px) + safe area iOS */
+    padding-top: calc(1.5rem + var(--safe-area-inset-top));
   }
 
   .safe-top-header-lg {
