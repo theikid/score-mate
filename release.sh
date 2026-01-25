@@ -122,16 +122,26 @@ fi
 echo -e "\n${GREEN}✓ Validation OK${NC}"
 echo -e "${BLUE}Version: $VERSION${NC}"
 
+# Demander un message de release
+echo -e "\n${BLUE}Message de release (description des changements):${NC}"
+echo -e "${BLUE}(Appuyez sur Entrée pour un message par défaut)${NC}"
+read -r RELEASE_MESSAGE
+
+if [ -z "$RELEASE_MESSAGE" ]; then
+  RELEASE_MESSAGE="Release $VERSION"
+fi
+
 # Demander confirmation
 echo -e "\n${BLUE}Actions à effectuer:${NC}"
 echo "1. Mettre à jour package.json avec la version $NEW_VERSION"
 echo "2. Merger develop dans main"
 echo "3. Mettre à jour compose.yaml avec la version Docker"
-echo "4. Créer le tag $VERSION sur main"
+echo "4. Créer le tag $VERSION sur main avec message: \"$RELEASE_MESSAGE\""
 echo "5. Builder l'image Docker ARM64"
 echo "6. Pusher l'image vers ghcr.io/theikid/score-mate:latest et :$VERSION"
 echo "7. Pusher main et le tag vers GitHub"
 echo "8. Pusher develop vers GitHub"
+echo "9. Créer une GitHub Release (si gh CLI disponible)"
 echo ""
 echo -e "${BLUE}Continuer? (y/n)${NC}"
 read -r CONFIRM
@@ -166,11 +176,11 @@ git add compose.yaml
 git commit -m "chore: Update Docker image version to $VERSION in compose.yaml" || echo "No changes to commit"
 
 # Étape 3: Créer le tag
-echo -e "\n${BLUE}[5/7] Création du tag $VERSION...${NC}"
-git tag -a "$VERSION" -m "Release $VERSION"
+echo -e "\n${BLUE}[5/9] Création du tag $VERSION...${NC}"
+git tag -a "$VERSION" -m "$RELEASE_MESSAGE"
 
-# Étape 3: Builder et pusher l'image Docker
-echo -e "\n${BLUE}[6/8] Build et push de l'image Docker...${NC}"
+# Étape 4: Builder et pusher l'image Docker
+echo -e "\n${BLUE}[6/9] Build et push de l'image Docker...${NC}"
 echo -e "${BLUE}Registry: ghcr.io/theikid/score-mate${NC}"
 echo -e "${BLUE}Note: Assurez-vous d'être connecté à GHCR: docker login ghcr.io -u theikid${NC}"
 
@@ -184,15 +194,29 @@ docker buildx build \
   --push \
   .
 
-# Étape 4: Push main et tags
-echo -e "\n${BLUE}[7/8] Push main et tags vers GitHub...${NC}"
+# Étape 5: Push main et tags
+echo -e "\n${BLUE}[7/9] Push main et tags vers GitHub...${NC}"
 git push origin main
 git push origin "$VERSION"
 
 # Retour sur develop et push
-echo -e "\n${BLUE}[8/8] Retour sur develop et synchronisation...${NC}"
+echo -e "\n${BLUE}[8/9] Retour sur develop et synchronisation...${NC}"
 git checkout develop
 git push origin develop
+
+# Étape 6: Créer une GitHub Release (si gh CLI est disponible)
+echo -e "\n${BLUE}[9/9] Création de la GitHub Release...${NC}"
+if command -v gh &> /dev/null; then
+  echo -e "${BLUE}Création de la release sur GitHub...${NC}"
+  gh release create "$VERSION" \
+    --title "$RELEASE_MESSAGE" \
+    --notes "$RELEASE_MESSAGE" \
+    --target main
+  echo -e "${GREEN}✓ GitHub Release créée: https://github.com/theikid/score-mate/releases/tag/$VERSION${NC}"
+else
+  echo -e "${BLUE}gh CLI non disponible, GitHub Release non créée${NC}"
+  echo -e "${BLUE}Vous pouvez la créer manuellement: https://github.com/theikid/score-mate/releases/new?tag=$VERSION${NC}"
+fi
 
 echo -e "\n${GREEN}✓ Release $VERSION terminée avec succès!${NC}"
 echo -e "${BLUE}Image Docker:${NC}"
