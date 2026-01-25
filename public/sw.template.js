@@ -1,4 +1,4 @@
-const CACHE_NAME = 'score-mate-v1';
+const CACHE_NAME = 'score-mate-v__VERSION__';
 const urlsToCache = [
   '/',
   '/new-game',
