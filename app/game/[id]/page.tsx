@@ -22,7 +22,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Plus, Trophy, Calculator, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, Plus, Trophy, Calculator, X } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Calculator as CalculatorComponent } from '@/components/calculator';
 
@@ -34,8 +34,9 @@ export default function GamePage() {
   const [game, setGame] = useState<Game | null>(null);
   const [roundScores, setRoundScores] = useState<Record<string, string>>({});
   const [showWinnerDialog, setShowWinnerDialog] = useState(false);
+  const [showScoreDialog, setShowScoreDialog] = useState(false);
   const [calculatorOpen, setCalculatorOpen] = useState<string | null>(null);
-  const [isScoreEntryExpanded, setIsScoreEntryExpanded] = useState(true);
+  const [wasScoreDialogOpen, setWasScoreDialogOpen] = useState(false);
 
   useEffect(() => {
     const loadedGame = getGame(gameId);
@@ -65,8 +66,8 @@ export default function GamePage() {
     }));
   };
 
-  const handleAddRound = () => {
-    if (!game) return;
+  const handleAddRound = (): boolean => {
+    if (!game) return false;
 
     // Vérifier que tous les scores sont saisis
     const scores: Record<string, number> = {};
@@ -88,7 +89,7 @@ export default function GamePage() {
 
     if (!allScoresValid) {
       alert('Veuillez saisir un score valide pour chaque joueur');
-      return;
+      return false;
     }
 
     // Ajouter la manche
@@ -107,6 +108,8 @@ export default function GamePage() {
     if (updatedGame.status === 'completed') {
       setShowWinnerDialog(true);
     }
+
+    return true;
   };
 
   const handleCloseGame = () => {
@@ -136,7 +139,7 @@ export default function GamePage() {
       </a>
 
       {/* Contenu scrollable */}
-      <div className={`flex-1 flex flex-col overflow-y-auto min-h-0 ${game.status === 'completed' ? 'pb-4' : isScoreEntryExpanded ? 'pb-[300px]' : 'pb-6'}`}>
+      <div className="flex-1 flex flex-col overflow-y-auto min-h-0 pb-6">
         {/* Header Score Mate - STICKY EN HAUT */}
         <header
           className="sticky top-0 z-10 bg-background"
@@ -147,7 +150,7 @@ export default function GamePage() {
           }}
         >
           <div className="container max-w-4xl mx-auto px-4">
-            <div className="flex items-start justify-between safe-top pt-8 pb-4 border-b border-border">
+            <div className="flex items-start justify-between safe-top-header pb-4 border-b border-border">
               <Button variant="ghost" size="icon" onClick={handleCloseGame} className="rounded-full -ml-2" aria-label="Retour à l'accueil">
                 <ArrowLeft className="h-5 w-5" aria-hidden="true" />
               </Button>
@@ -161,8 +164,7 @@ export default function GamePage() {
           </div>
         </header>
 
-        <main id="main-content" className="container max-w-4xl mx-auto px-4">
-        <div className="flex flex-col gap-6">
+        <main id="main-content" className="container max-w-4xl mx-auto px-4 flex-1 flex flex-col">
           {/* Info de la partie */}
           <div className="pt-4">
             <div className="text-center space-y-2">
@@ -173,156 +175,215 @@ export default function GamePage() {
             </div>
           </div>
 
-          {/* Classement & Historique - affiché uniquement si au moins 1 manche jouée */}
-          {game.rounds.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Classement & Historique</CardTitle>
+        <div className="flex flex-col gap-6 pt-6">
+          {/* Message si aucune manche */}
+          {game.rounds.length === 0 && game.status === 'in-progress' && (
+            <Card className="text-center">
+              <CardHeader className="pt-4 pb-0">
+                <CardTitle className="text-xl">Aucune manche jouée</CardTitle>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Commencez la partie en saisissant les scores de la première manche
+                </p>
               </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Classement actuel */}
-                <div className="space-y-2">
-                  {leaderboard.map((entry, index) => {
-                    const player = game.players.find((p) => p.id === entry.playerId);
-                    if (!player) return null;
-                    const isWinner = game.status === 'completed' && game.winner === player.id;
-                    return (
-                      <div
-                        key={player.id}
-                        className={`flex items-center justify-between py-2 px-3 rounded-lg ${isWinner ? 'bg-yellow-500/10' : 'bg-muted/30'}`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <Badge variant={index === 0 ? 'default' : 'secondary'} className="text-xs min-w-[32px] justify-center">
-                            {index + 1}
-                          </Badge>
-                          <span className={`font-medium ${isWinner ? 'text-yellow-500' : ''}`}>{player.name}</span>
-                          {isWinner && <Trophy className="w-4 h-4 text-yellow-500" aria-hidden="true" />}
-                        </div>
-                        <span className={`font-semibold text-lg ${isWinner ? 'text-yellow-500' : ''}`}>{entry.totalScore} pts</span>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Historique */}
-                <div className="pt-2">
-                  <h4 className="text-sm font-semibold text-muted-foreground mb-3">Détail des manches</h4>
-
-                  {/* Historique en colonnes */}
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b">
-                          <th className="text-left py-2 px-2 font-semibold text-xs text-muted-foreground">Joueur</th>
-                          {game.rounds.map((round, index) => (
-                            <th key={round.id} className="text-center py-2 px-2 font-semibold text-xs text-muted-foreground">
-                              M{index + 1}
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {game.players.map((player) => (
-                          <tr key={player.id} className="border-b last:border-0">
-                            <td className="py-2 px-2 font-medium">{player.name}</td>
-                            {game.rounds.map((round) => (
-                              <td key={round.id} className="text-center py-2 px-2">
-                                {round.scores[player.id]}
-                              </td>
-                            ))}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
+              <CardContent className="pt-6 pb-4">
+                <Button
+                  type="button"
+                  size="lg"
+                  onClick={() => {
+                    // Réinitialiser les scores
+                    if (game) {
+                      const resetScores: Record<string, string> = {};
+                      game.players.forEach((player) => {
+                        resetScores[player.id] = '';
+                      });
+                      setRoundScores(resetScores);
+                    }
+                    setShowScoreDialog(true);
+                  }}
+                  className="w-full rounded-full gap-2 h-14 text-lg font-semibold"
+                >
+                  <Plus className="w-6 h-6" aria-hidden="true" />
+                  Saisir la manche 1
+                </Button>
               </CardContent>
             </Card>
+          )}
+
+          {/* Classement & Historique - affiché uniquement si au moins 1 manche jouée */}
+          {game.rounds.length > 0 && (
+            <>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Classement & Historique</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Classement actuel */}
+                  <div className="space-y-2">
+                    {leaderboard.map((entry, index) => {
+                      const player = game.players.find((p) => p.id === entry.playerId);
+                      if (!player) return null;
+                      const isWinner = game.status === 'completed' && game.winner === player.id;
+                      return (
+                        <div
+                          key={player.id}
+                          className={`flex items-center justify-between py-2 px-3 rounded-lg ${isWinner ? 'bg-yellow-500/10' : 'bg-muted/30'}`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <Badge variant={index === 0 ? 'default' : 'secondary'} className="text-xs min-w-[32px] justify-center">
+                              {index + 1}
+                            </Badge>
+                            <span className={`font-medium ${isWinner ? 'text-yellow-500' : ''}`}>{player.name}</span>
+                            {isWinner && <Trophy className="w-4 h-4 text-yellow-500" aria-hidden="true" />}
+                          </div>
+                          <span className={`font-semibold text-lg ${isWinner ? 'text-yellow-500' : ''}`}>{entry.totalScore} pts</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Historique */}
+                  <div className="pt-2">
+                    <h4 className="text-sm font-semibold text-muted-foreground mb-3">Détail des manches</h4>
+
+                    {/* Historique en colonnes */}
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b">
+                            <th className="text-left py-2 px-2 font-semibold text-xs text-muted-foreground">Joueur</th>
+                            {game.rounds.map((round, index) => (
+                              <th key={round.id} className="text-center py-2 px-2 font-semibold text-xs text-muted-foreground">
+                                M{index + 1}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {game.players.map((player) => (
+                            <tr key={player.id} className="border-b last:border-0">
+                              <td className="py-2 px-2 font-medium">{player.name}</td>
+                              {game.rounds.map((round) => (
+                                <td key={round.id} className="text-center py-2 px-2">
+                                  {round.scores[player.id]}
+                                </td>
+                              ))}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Bouton Nouvelle manche */}
+              {game.status === 'in-progress' && (
+                <Button
+                  type="button"
+                  size="lg"
+                  onClick={() => {
+                    // Réinitialiser les scores
+                    if (game) {
+                      const resetScores: Record<string, string> = {};
+                      game.players.forEach((player) => {
+                        resetScores[player.id] = '';
+                      });
+                      setRoundScores(resetScores);
+                    }
+                    setShowScoreDialog(true);
+                  }}
+                  className="w-full rounded-full gap-2 h-14 text-lg font-semibold"
+                >
+                  <Plus className="w-6 h-6" aria-hidden="true" />
+                  Nouvelle manche
+                </Button>
+              )}
+            </>
           )}
 
         </div>
         </main>
       </div>
 
-      {/* Saisie nouvelle manche - fixe en bas sur mobile */}
-      {game.status === 'in-progress' && (
-        <footer className={`fixed-bottom-button ${!isScoreEntryExpanded ? '!py-6' : ''}`}>
-          <div className="fixed-bottom-button-content">
-            <div className="container max-w-3xl mx-auto">
-              <div className="space-y-6">
-              <button
-                onClick={() => setIsScoreEntryExpanded(!isScoreEntryExpanded)}
-                className="flex items-center justify-between w-full text-left"
-                aria-expanded={isScoreEntryExpanded}
-                aria-label={isScoreEntryExpanded ? "Réduire la saisie des scores" : "Développer la saisie des scores"}
-              >
-                <h3 className="text-xl font-bold">
-                  Manche {game.rounds.length + 1} (en cours)
-                </h3>
-                {isScoreEntryExpanded ? (
-                  <ChevronDown className="h-6 w-6" aria-hidden="true" />
-                ) : (
-                  <ChevronUp className="h-6 w-6" aria-hidden="true" />
-                )}
-              </button>
-              {isScoreEntryExpanded && (
-                <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                  {game.players.map((player) => (
-                    <div key={player.id} className="flex items-center gap-3">
-                      <label htmlFor={`score-${player.id}`} className="w-32 text-sm font-medium">
-                        {player.name}
-                      </label>
-                      <div className="flex gap-2 flex-1">
-                        <div className="relative flex-1">
-                          <Input
-                            id={`score-${player.id}`}
-                            type="number"
-                            placeholder="Score"
-                            value={roundScores[player.id] || ''}
-                            onChange={(e) =>
-                              handleScoreChange(player.id, e.target.value)
-                            }
-                            className={roundScores[player.id] ? 'pr-10' : ''}
-                            inputMode="numeric"
-                          />
-                          {roundScores[player.id] && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleScoreChange(player.id, '')}
-                              aria-label={`Effacer le score de ${player.name}`}
-                              className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
-                            >
-                              <X className="h-4 w-4" aria-hidden="true" />
-                            </Button>
-                          )}
-                        </div>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => setCalculatorOpen(player.id)}
-                          aria-label={`Ouvrir la calculatrice pour ${player.name}`}
-                        >
-                          <Calculator className="h-4 w-4" aria-hidden="true" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+      {/* Dialog de saisie des scores */}
+      <Dialog open={showScoreDialog} onOpenChange={setShowScoreDialog}>
+        <DialogContent className="sm:max-w-md max-h-[85dvh] overflow-y-auto" onOpenAutoFocus={(e) => e.preventDefault()}>
+          <DialogHeader>
+            <DialogTitle className="text-2xl">
+              Manche {game.rounds.length + 1}
+            </DialogTitle>
+            <DialogDescription>
+              Saisissez les scores de chaque joueur
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3 mt-4">
+            {game.players.map((player) => (
+              <div key={player.id} className="flex items-center gap-3">
+                <label htmlFor={`score-${player.id}`} className="w-24 text-sm font-medium">
+                  {player.name}
+                </label>
+                <div className="flex gap-2 flex-1">
+                  <div className="relative flex-1">
+                    <Input
+                      id={`score-${player.id}`}
+                      type="number"
+                      placeholder="Score"
+                      value={roundScores[player.id] || ''}
+                      onChange={(e) =>
+                        handleScoreChange(player.id, e.target.value)
+                      }
+                      className={roundScores[player.id] ? 'pr-10' : ''}
+                      inputMode="numeric"
+                    />
+                    {roundScores[player.id] && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleScoreChange(player.id, '')}
+                        aria-label={`Effacer le score de ${player.name}`}
+                        className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+                      >
+                        <X className="h-4 w-4" aria-hidden="true" />
+                      </Button>
+                    )}
+                  </div>
                   <Button
-                    onClick={handleAddRound}
-                    className="w-full mt-4 gap-2 h-14 text-lg font-semibold rounded-full"
-                    size="lg"
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setWasScoreDialogOpen(showScoreDialog);
+                      setShowScoreDialog(false);
+                      setCalculatorOpen(player.id);
+                    }}
+                    aria-label={`Ouvrir la calculatrice pour ${player.name}`}
                   >
-                    <Plus className="w-6 h-6" aria-hidden="true" />
-                    Valider la manche
+                    <Calculator className="h-4 w-4" aria-hidden="true" />
                   </Button>
                 </div>
-              )}
               </div>
-            </div>
+            ))}
           </div>
-        </footer>
-      )}
+
+          <Button
+            onClick={() => {
+              const success = handleAddRound();
+              if (success) {
+                setShowScoreDialog(false);
+              }
+            }}
+            className="w-full mt-6 gap-2 h-14 text-lg font-semibold rounded-full"
+            size="lg"
+          >
+            <Plus className="w-6 h-6" aria-hidden="true" />
+            Valider la manche
+          </Button>
+        </DialogContent>
+      </Dialog>
 
       {/* Modal de victoire */}
       <Dialog open={showWinnerDialog} onOpenChange={setShowWinnerDialog}>
@@ -386,11 +447,21 @@ export default function GamePage() {
       {/* Calculatrice */}
       <CalculatorComponent
         isOpen={calculatorOpen !== null}
-        onClose={() => setCalculatorOpen(null)}
+        onClose={() => {
+          setCalculatorOpen(null);
+          if (wasScoreDialogOpen) {
+            setShowScoreDialog(true);
+            setWasScoreDialogOpen(false);
+          }
+        }}
         onValidate={(result) => {
           if (calculatorOpen) {
             handleScoreChange(calculatorOpen, result.toString());
             setCalculatorOpen(null);
+            if (wasScoreDialogOpen) {
+              setShowScoreDialog(true);
+              setWasScoreDialogOpen(false);
+            }
           }
         }}
         playerName={

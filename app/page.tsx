@@ -169,7 +169,7 @@ export default function Home() {
       </a>
 
       {/* Header */}
-      <header className="container max-w-2xl mx-auto px-4 safe-top pt-8 pb-4 shrink-0">
+      <header className="container max-w-2xl mx-auto px-4 safe-top-header pb-4 shrink-0">
         <div className="flex items-center justify-between mb-2">
           <h1 className="text-4xl font-bold tracking-tight leading-none">
             Score Mate
@@ -183,24 +183,59 @@ export default function Home() {
 
       {/* Contenu principal scrollable */}
       <main id="main-content" className="flex-1 overflow-y-auto min-h-0">
-        <div className={`container max-w-2xl mx-auto px-4 h-full flex flex-col ${activeGames.length === 0 && completedGames.length === 0 ? 'pb-[120px]' : 'pb-4'}`}>
+        <div className="container max-w-2xl mx-auto px-4 h-full flex flex-col pb-4">
           <div className={`flex flex-col gap-6 py-4 ${activeGames.length === 0 && completedGames.length === 0 ? 'flex-1 justify-center' : ''}`}>
           {/* Partie en cours */}
           {activeGames.length > 0 && (
             <div className="space-y-3">
               <h2 className="text-xl font-semibold">Partie en cours</h2>
               {renderGameCard(activeGames[0])}
+              <Button
+                type="button"
+                size="lg"
+                onClick={() => handlePlayGame(activeGames[0].id)}
+                className="w-full rounded-full gap-2 h-14 text-lg font-semibold"
+              >
+                <Play className="w-6 h-6" aria-hidden="true" />
+                Continuer la partie
+              </Button>
             </div>
           )}
 
           {/* Message quand aucune partie */}
           {activeGames.length === 0 && completedGames.length === 0 && (
-            <div className="py-12 text-center text-muted-foreground border border-border rounded-lg">
-              <p className="text-lg mb-2">Aucune partie en cours</p>
-              <p className="text-sm">
-                Créez une nouvelle partie pour commencer !
-              </p>
-            </div>
+            <Card className="text-center">
+              <CardHeader className="pt-8">
+                <CardTitle className="text-xl">Aucune partie en cours</CardTitle>
+                <CardDescription>
+                  Créez une nouvelle partie pour commencer !
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6 pb-8">
+                <Button
+                  type="button"
+                  size="lg"
+                  onClick={() => router.push('/new-game')}
+                  className="w-full rounded-full gap-2 h-14 text-lg font-semibold"
+                >
+                  <Plus className="w-6 h-6" aria-hidden="true" />
+                  Nouvelle partie
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Bouton nouvelle partie quand il y a des parties terminées mais pas de partie active */}
+          {activeGames.length === 0 && completedGames.length > 0 && (
+            <Button
+              type="button"
+              size="lg"
+              onClick={() => router.push('/new-game')}
+              className="w-full rounded-full gap-2 h-14 text-lg font-semibold"
+            >
+              <Plus className="w-6 h-6" aria-hidden="true" />
+              Nouvelle partie
+            </Button>
           )}
 
           {/* Parties terminées */}
@@ -240,32 +275,6 @@ export default function Home() {
         </div>
       </main>
 
-      {/* Bouton nouvelle partie ou continuer - fixe en bas */}
-      <footer className="fixed-bottom-button">
-        <div className="w-full md:max-w-2xl mx-auto flex justify-center">
-          {activeGames.length > 0 ? (
-            <Button
-              type="button"
-              size="lg"
-              onClick={() => handlePlayGame(activeGames[0].id)}
-              className="w-full md:w-auto md:min-w-[320px] rounded-full gap-2 h-14 text-lg font-semibold"
-            >
-              <Play className="w-6 h-6" aria-hidden="true" />
-              Continuer la partie
-            </Button>
-          ) : (
-            <Button
-              type="button"
-              size="lg"
-              onClick={() => router.push('/new-game')}
-              className="w-full md:w-auto md:min-w-[320px] rounded-full gap-2 h-14 text-lg font-semibold"
-            >
-              <Plus className="w-6 h-6" aria-hidden="true" />
-              Nouvelle partie
-            </Button>
-          )}
-        </div>
-      </footer>
 
       {/* Modal de confirmation de suppression */}
       <AlertDialog open={gameToDelete !== null} onOpenChange={(open) => !open && setGameToDelete(null)}>
