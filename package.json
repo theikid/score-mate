@@ -1,9 +1,10 @@
 {
   "name": "score-mate",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "node scripts/generate-sw.js",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
