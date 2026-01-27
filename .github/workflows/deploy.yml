@@ -22,7 +22,7 @@ jobs:
             echo "Tentative $attempt/3..."
 
             HTTP_CODE=$(curl -X POST -s -o /dev/null -w "%{http_code}" \
-              https://truenas-holonet.tailcc5936.ts.net/api/git/stacks/7/webhook)
+              https://scarif.tailcc5936.ts.net/api/git/stacks/7/webhook)
 
             if [ "$HTTP_CODE" -eq 200 ]; then
               echo "✅ Déploiement déclenché avec succès ! (HTTP $HTTP_CODE)"
